@@ -99,9 +99,36 @@ derivers =
         else
             select = selector
         (row) -> "#{select(row) - select(row) % binWidth}"
+        
+i18n =
+    current: null
+    ln: -> i18n.current ? i18n.current = (window.navigator.userLanguage || window.navigator.language)
+    t: (str, args...) -> 
+        ln_def = i18n[i18n.ln()] ? i18n["en"]
+        f = ln_def?[str]
+        if f?
+            if Object.prototype.toString.call(f) == '[object Function]'
+                return f(args)
+            else
+                return f
+        else
+            return str
 
+i18n["en"] =
+    "values for axis": (args) -> "#{args[0]} values for #{args[1]}"
+    "aggregator.count": "count"
+    "aggregator.countUnique": "countUnique"  
+    "aggregator.listUnique": "listUnique"  
+    "aggregator.intSum": "intSum"  
+    "aggregator.sum": "Sum"  
+    "aggregator.average": "average"  
+    "aggregator.sumOverSum": "sumOverSum"  
+    "aggregator.ub80": "ub80"  
+    "aggregator.lb80": "lb80"
+    
+t = i18n.t
 
-$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers}
+$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers, i18n}
 
 ###
 functions for accessing input
@@ -109,7 +136,7 @@ functions for accessing input
 
 deriveAttributes = (row, derivedAttributes, f) ->
     row[k] = v(row) ? row[k] for k, v of derivedAttributes
-    row[k] ?= "null" for own k of row
+    row[k] ?= t("null") for own k of row
     f(row)
 
 #can handle arrays or jQuery selections of tables
@@ -289,7 +316,7 @@ buildPivotTable = (pivotData) ->
                     th.attr("rowspan", 2)
                 tr.append th
         if parseInt(j) == 0
-            tr.append $("<th class='pvtTotalLabel'>").text("Totals")
+            tr.append $("<th class='pvtTotalLabel'>").text(t "Totals")
                 .attr("rowspan", cols.length + (if rows.length ==0 then 0 else 1))
         result.append tr
 
@@ -300,7 +327,7 @@ buildPivotTable = (pivotData) ->
             tr.append $("<th class='pvtAxisLabel'>").text(r)
         th = $("<th>")
         if cols.length ==0
-            th.addClass("pvtTotalLabel").text("Totals")
+            th.addClass("pvtTotalLabel").text(t "Totals")
         tr.append th
         result.append tr
 
@@ -331,7 +358,7 @@ buildPivotTable = (pivotData) ->
 
     #finally, the row for col totals, and a grand total
     tr = $("<tr>")
-    th = $("<th class='pvtTotalLabel'>").text("Totals")
+    th = $("<th class='pvtTotalLabel'>").text(t "Totals")
     th.attr("colspan", rows.length + (if cols.length == 0 then 0 else 1))
     tr.append th
     for own j, colKey of colKeys
@@ -417,12 +444,12 @@ $.fn.pivotUI = (input, opts) ->
         form = $("<form>").addClass("form-inline")
         controls.append form
 
-        form.append $("<strong>").text("Effects:")
+        form.append $("<strong>").text(t "Effects:")
         for x in rendererNames
             radio = $("<input type='radio' name='renderers' id='renderers_#{x.replace(/\s/g, "")}'>")
               .css("margin-left":"15px", "margin-right": "5px").val(x)
             radio.attr("checked", "checked") if x=="None"
-            form.append(radio).append $("<label class='checkbox inline' for='renderers_#{x.replace(/\s/g, "")}'>").text(x)
+            form.append(radio).append $("<label class='checkbox inline' for='renderers_#{x.replace(/\s/g, "")}'>").text(t x)
 
         uiTable.append $("<tr>").append controls
 
@@ -445,14 +472,14 @@ $.fn.pivotUI = (input, opts) ->
                     "display": "none"
                     "position": "absolute"
                     "padding": "20px"
-            valueList.append $("<strong>").text "#{numKeys} values for #{c}"
+            valueList.append $("<strong>").text t("values for axis",numKeys, c)
             if numKeys > 20
-                valueList.append $("<p>").text "(too many to list)"
+                valueList.append $("<p>").text t "(too many to list)"
             else
                 btns = $("<p>")
-                btns.append $("<button>").text("Select All").bind "click", ->
+                btns.append $("<button>").text(t "Select All").bind "click", ->
                     valueList.find("input").attr "checked", true
-                btns.append $("<button>").text("Select None").bind "click", ->
+                btns.append $("<button>").text(t "Select None").bind "click", ->
                     valueList.find("input").attr "checked", false
                 valueList.append btns
                 for k in Object.keys(axisValues[c]).sort()
@@ -481,7 +508,7 @@ $.fn.pivotUI = (input, opts) ->
         .css("margin-bottom", "5px")
         .bind "change", -> refresh() #capture reference
     for own x of opts.aggregators
-        aggregator.append $("<option>").val(x).text(x)
+        aggregator.append $("<option>").val(x).text(t "aggregator.#{x}")
 
     tr1.append $("<td id='vals' class='pvtAxisContainer pvtHorizList'>")
       .css("text-align", "center")
