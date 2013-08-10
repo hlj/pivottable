@@ -124,7 +124,13 @@ i18n["en"] =
     
 t = i18n.t
 
-$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers, i18n}
+decorators =
+    style: 'jquery-ui'
+    decorate: (element, target)->
+        decorators.default[target](element)
+        decorators[decorators.style][target](element)
+
+$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers, i18n, decorators}
 
 ###
 functions for accessing input
@@ -267,6 +273,7 @@ buildPivotData = (input, cols, rows, aggregator, filter, derivedAttributes) ->
     pivotData = new PivotData(aggregator, cols, rows)
     forEachRow input, derivedAttributes, (row) ->
         pivotData.processRow(row) if filter(row)
+    window.pivotData = pivotData
     return pivotData
 
 #helper function for setting row/col-span
@@ -294,7 +301,7 @@ buildPivotTable = (pivotData) ->
     colKeys = pivotData.getColKeys()
 
     #now actually build the output
-    result = $("<table class='table table-bordered pvtTable'>")
+    result = $("<table class='pvtTable'>")
 
     #the first few rows are for col headers
     for own j, c of cols
@@ -307,7 +314,7 @@ buildPivotTable = (pivotData) ->
         for own i, colKey of colKeys
             x = spanSize(colKeys, parseInt(i), parseInt(j))
             if x != -1
-                th = $("<th class='pvtColLabel'>").text(colKey[j]).attr("colspan", x)
+                th = $("<th class='pvtColLabel col#{i}'>").text(colKey[j]).attr("colspan", x)
                 if parseInt(j) == cols.length-1 and rows.length != 0
                     th.attr("rowspan", 2)
                 tr.append th
@@ -333,7 +340,7 @@ buildPivotTable = (pivotData) ->
         for own j, txt of rowKey
             x = spanSize(rowKeys, parseInt(i), parseInt(j))
             if x != -1
-                th = $("<th class='pvtRowLabel'>").text(txt).attr("rowspan", x)
+                th = $("<th class='pvtRowLabel row#{i}'>").text(txt).attr("rowspan", x)
                 if parseInt(j) == rows.length-1 and cols.length !=0
                     th.attr("colspan",2)
                 tr.append th
@@ -346,7 +353,7 @@ buildPivotTable = (pivotData) ->
 
         totalAggregator = pivotData.getAggregator(rowKey, [])
         val = totalAggregator.value()
-        tr.append $("<td class='pvtTotal rowTotal'>")
+        tr.append $("<td class='pvtTotal rowTotal row#{i}'>")
             .text(totalAggregator.format val)
             .data("value", val)
             .data("for", "row"+i)
@@ -360,7 +367,7 @@ buildPivotTable = (pivotData) ->
     for own j, colKey of colKeys
         totalAggregator = pivotData.getAggregator([], colKey)
         val = totalAggregator.value()
-        tr.append $("<td class='pvtTotal colTotal'>")
+        tr.append $("<td class='pvtTotal colTotal col#{j}'>")
             .text(totalAggregator.format val)
             .data("value", val)
             .data("for", "col"+j)
@@ -373,7 +380,10 @@ buildPivotTable = (pivotData) ->
 
     #squirrel this away for later
     result.data "dimensions", [rowKeys.length, colKeys.length]
-
+    
+    # decorate the table
+    decorators.decorate(result, 'PivotTable')
+    
     return result
 
 ###

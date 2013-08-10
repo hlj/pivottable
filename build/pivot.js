@@ -1,5 +1,5 @@
 (function() {
-  var $, PivotData, addCommas, aggregatorTemplates, aggregators, buildPivotData, buildPivotTable, convertToArray, deriveAttributes, derivers, forEachRow, i18n, numberFormat, renderers, spanSize, t,
+  var $, PivotData, addCommas, aggregatorTemplates, aggregators, buildPivotData, buildPivotTable, convertToArray, decorators, deriveAttributes, derivers, forEachRow, i18n, numberFormat, renderers, spanSize, t,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
@@ -284,12 +284,21 @@
 
   t = i18n.t;
 
+  decorators = {
+    style: 'jquery-ui',
+    decorate: function(element, target) {
+      decorators["default"][target](element);
+      return decorators[decorators.style][target](element);
+    }
+  };
+
   $.pivotUtilities = {
     aggregatorTemplates: aggregatorTemplates,
     aggregators: aggregators,
     renderers: renderers,
     derivers: derivers,
-    i18n: i18n
+    i18n: i18n,
+    decorators: decorators
   };
 
   /*
@@ -548,6 +557,7 @@
         return pivotData.processRow(row);
       }
     });
+    window.pivotData = pivotData;
     return pivotData;
   };
 
@@ -586,7 +596,7 @@
     rows = pivotData.rowVars;
     rowKeys = pivotData.getRowKeys();
     colKeys = pivotData.getColKeys();
-    result = $("<table class='table table-bordered pvtTable'>");
+    result = $("<table class='pvtTable'>");
     for (j in cols) {
       if (!__hasProp.call(cols, j)) continue;
       c = cols[j];
@@ -600,7 +610,7 @@
         colKey = colKeys[i];
         x = spanSize(colKeys, parseInt(i), parseInt(j));
         if (x !== -1) {
-          th = $("<th class='pvtColLabel'>").text(colKey[j]).attr("colspan", x);
+          th = $("<th class='pvtColLabel col" + i + "'>").text(colKey[j]).attr("colspan", x);
           if (parseInt(j) === cols.length - 1 && rows.length !== 0) {
             th.attr("rowspan", 2);
           }
@@ -635,7 +645,7 @@
         txt = rowKey[j];
         x = spanSize(rowKeys, parseInt(i), parseInt(j));
         if (x !== -1) {
-          th = $("<th class='pvtRowLabel'>").text(txt).attr("rowspan", x);
+          th = $("<th class='pvtRowLabel row" + i + "'>").text(txt).attr("rowspan", x);
           if (parseInt(j) === rows.length - 1 && cols.length !== 0) {
             th.attr("colspan", 2);
           }
@@ -651,7 +661,7 @@
       }
       totalAggregator = pivotData.getAggregator(rowKey, []);
       val = totalAggregator.value();
-      tr.append($("<td class='pvtTotal rowTotal'>").text(totalAggregator.format(val)).data("value", val).data("for", "row" + i));
+      tr.append($("<td class='pvtTotal rowTotal row" + i + "'>").text(totalAggregator.format(val)).data("value", val).data("for", "row" + i));
       result.append(tr);
     }
     tr = $("<tr>");
@@ -663,13 +673,14 @@
       colKey = colKeys[j];
       totalAggregator = pivotData.getAggregator([], colKey);
       val = totalAggregator.value();
-      tr.append($("<td class='pvtTotal colTotal'>").text(totalAggregator.format(val)).data("value", val).data("for", "col" + j));
+      tr.append($("<td class='pvtTotal colTotal col" + j + "'>").text(totalAggregator.format(val)).data("value", val).data("for", "col" + j));
     }
     totalAggregator = pivotData.getAggregator([], []);
     val = totalAggregator.value();
     tr.append($("<td class='pvtGrandTotal'>").text(totalAggregator.format(val)).data("value", val));
     result.append(tr);
     result.data("dimensions", [rowKeys.length, colKeys.length]);
+    decorators.decorate(result, 'PivotTable');
     return result;
   };
 
