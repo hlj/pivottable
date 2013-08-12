@@ -267,21 +267,6 @@
     }
   };
 
-  i18n["en"] = {
-    "values for axis": function(args) {
-      return "" + args[0] + " values for " + args[1];
-    },
-    "aggregator.count": "count",
-    "aggregator.countUnique": "countUnique",
-    "aggregator.listUnique": "listUnique",
-    "aggregator.intSum": "intSum",
-    "aggregator.sum": "Sum",
-    "aggregator.average": "average",
-    "aggregator.sumOverSum": "sumOverSum",
-    "aggregator.ub80": "ub80",
-    "aggregator.lb80": "lb80"
-  };
-
   t = i18n.t;
 
   decorators = {
@@ -328,8 +313,8 @@
     };
     if (Object.prototype.toString.call(input) === '[object Function]') {
       return input(addRow);
-    } else if (Array.isArray(input)) {
-      if (Array.isArray(input[0])) {
+    } else if ($.isArray(input)) {
+      if ($.isArray(input[0])) {
         _results = [];
         for (i in input) {
           if (!__hasProp.call(input, i)) continue;
@@ -591,12 +576,13 @@
   };
 
   buildPivotTable = function(pivotData) {
-    var aggregator, c, colKey, colKeys, cols, i, j, r, result, rowKey, rowKeys, rows, th, totalAggregator, tr, txt, val, x;
+    var aggregator, c, colKey, colKeys, cols, i, j, r, result, rowKey, rowKeys, rows, tbody, tfoot, th, thead, totalAggregator, tr, txt, val, x;
     cols = pivotData.colVars;
     rows = pivotData.rowVars;
     rowKeys = pivotData.getRowKeys();
     colKeys = pivotData.getColKeys();
     result = $("<table class='pvtTable'>");
+    thead = $('<thead>');
     for (j in cols) {
       if (!__hasProp.call(cols, j)) continue;
       c = cols[j];
@@ -620,7 +606,7 @@
       if (parseInt(j) === 0) {
         tr.append($("<th class='pvtTotalLabel'>").text(t("Totals")).attr("rowspan", cols.length + (rows.length === 0 ? 0 : 1)));
       }
-      result.append(tr);
+      thead.append(tr);
     }
     if (rows.length !== 0) {
       tr = $("<tr>");
@@ -634,8 +620,10 @@
         th.addClass("pvtTotalLabel").text(t("Totals"));
       }
       tr.append(th);
-      result.append(tr);
+      thead.append(tr);
     }
+    result.append(thead);
+    tbody = $('<tbody>');
     for (i in rowKeys) {
       if (!__hasProp.call(rowKeys, i)) continue;
       rowKey = rowKeys[i];
@@ -662,8 +650,10 @@
       totalAggregator = pivotData.getAggregator(rowKey, []);
       val = totalAggregator.value();
       tr.append($("<td class='pvtTotal rowTotal row" + i + "'>").text(totalAggregator.format(val)).data("value", val).data("for", "row" + i));
-      result.append(tr);
+      tbody.append(tr);
     }
+    result.append(tbody);
+    tfoot = $('<tfoot>');
     tr = $("<tr>");
     th = $("<th class='pvtTotalLabel'>").text(t("Totals"));
     th.attr("colspan", rows.length + (cols.length === 0 ? 0 : 1));
@@ -678,9 +668,9 @@
     totalAggregator = pivotData.getAggregator([], []);
     val = totalAggregator.value();
     tr.append($("<td class='pvtGrandTotal'>").text(totalAggregator.format(val)).data("value", val));
-    result.append(tr);
+    result.append(tfoot.append(tr));
     result.data("dimensions", [rowKeys.length, colKeys.length]);
-    decorators.decorate(result, 'PivotTable');
+    decorators.decorate(result, 'pivotTable');
     return result;
   };
 
@@ -701,9 +691,11 @@
       derivedAttributes: {},
       renderer: function(pivotData) {
         return buildPivotTable(pivotData);
-      }
+      },
+      decoratorStyle: 'jquery-ui'
     };
     opts = $.extend(defaults, opts);
+    $.pivotUtilities.decorators.style = opts.decoratorStyle;
     pivotData = buildPivotData(input, opts.cols, opts.rows, opts.aggregator, opts.filter, opts.derivedAttributes);
     this.html(opts.renderer(pivotData));
     return this;
@@ -721,11 +713,13 @@
       aggregators: aggregators,
       renderers: renderers,
       hiddenAxes: [],
+      decoratorStyle: 'jquery-ui',
       cols: [],
       rows: [],
       vals: []
     };
     opts = $.extend(defaults, opts);
+    $.pivotUtilities.decorators.style = opts.decoratorStyle;
     input = convertToArray(input);
     tblCols = (function() {
       var _ref, _results;
@@ -765,7 +759,8 @@
       }
       return _results;
     });
-    uiTable = $("<table class='table table-bordered' cellpadding='5'>");
+    uiTable = $("<table class='pvt-ui-table' cellpadding='5'>");
+    console.log(axisValues);
     rendererNames = (function() {
       var _ref1, _results;
       _ref1 = opts.renderers;
@@ -801,8 +796,19 @@
       c = tblCols[_k];
       if (__indexOf.call(opts.hiddenAxes, c) < 0) {
         (function(c) {
-          var btns, colLabel, filterItem, numKeys, v, valueList, _l, _len3, _ref1;
-          numKeys = Object.keys(axisValues[c]).length;
+          var btns, colLabel, filterItem, keys, numKeys, v, valueList, _l, _len3, _ref1;
+          keys = (function() {
+            var _ref1, _results;
+            _ref1 = axisValues[c];
+            _results = [];
+            for (k in _ref1) {
+              if (!__hasProp.call(_ref1, k)) continue;
+              v = _ref1[k];
+              _results.push(k);
+            }
+            return _results;
+          })();
+          numKeys = keys.length;
           colLabel = $("<nobr>").text(c);
           valueList = $("<div>").css({
             "z-index": 100,
@@ -827,7 +833,7 @@
               return valueList.find("input").attr("checked", false);
             }));
             valueList.append(btns);
-            _ref1 = Object.keys(axisValues[c]).sort();
+            _ref1 = keys.sort();
             for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
               k = _ref1[_l];
               v = axisValues[c][k];

@@ -109,18 +109,6 @@ i18n =
                 return f
         else
             return str
-
-i18n["en"] =
-    "values for axis": (args) -> "#{args[0]} values for #{args[1]}"
-    "aggregator.count": "count"
-    "aggregator.countUnique": "countUnique"  
-    "aggregator.listUnique": "listUnique"  
-    "aggregator.intSum": "intSum"  
-    "aggregator.sum": "Sum"  
-    "aggregator.average": "average"  
-    "aggregator.sumOverSum": "sumOverSum"  
-    "aggregator.ub80": "ub80"  
-    "aggregator.lb80": "lb80"
     
 t = i18n.t
 
@@ -147,8 +135,8 @@ forEachRow = (input, derivedAttributes, f) ->
     #if it's a function, have it call us back
     if Object.prototype.toString.call(input) == '[object Function]'
         input(addRow)
-    else if Array.isArray(input)
-        if Array.isArray(input[0]) #array of arrays
+    else if $.isArray(input)
+        if $.isArray(input[0]) #array of arrays
             for own i, compactRow of input when i > 0
                 row = {}
                 row[k] = compactRow[j] for own j, k of input[0]
@@ -302,7 +290,8 @@ buildPivotTable = (pivotData) ->
 
     #now actually build the output
     result = $("<table class='pvtTable'>")
-
+    
+    thead = $('<thead>')
     #the first few rows are for col headers
     for own j, c of cols
         tr = $("<tr>")
@@ -321,7 +310,7 @@ buildPivotTable = (pivotData) ->
         if parseInt(j) == 0
             tr.append $("<th class='pvtTotalLabel'>").text(t "Totals")
                 .attr("rowspan", cols.length + (if rows.length ==0 then 0 else 1))
-        result.append tr
+        thead.append tr
 
     #then a row for row header headers
     if rows.length !=0
@@ -332,9 +321,12 @@ buildPivotTable = (pivotData) ->
         if cols.length ==0
             th.addClass("pvtTotalLabel").text(t "Totals")
         tr.append th
-        result.append tr
+        thead.append tr
+    
+    result.append thead
 
     #now the actual data rows, with their row headers and totals
+    tbody = $('<tbody>')
     for own i, rowKey of rowKeys
         tr = $("<tr>")
         for own j, txt of rowKey
@@ -357,9 +349,11 @@ buildPivotTable = (pivotData) ->
             .text(totalAggregator.format val)
             .data("value", val)
             .data("for", "row"+i)
-        result.append tr
-
+        tbody.append tr
+    result.append tbody
+    
     #finally, the row for col totals, and a grand total
+    tfoot = $('<tfoot>')
     tr = $("<tr>")
     th = $("<th class='pvtTotalLabel'>").text(t "Totals")
     th.attr("colspan", rows.length + (if cols.length == 0 then 0 else 1))
@@ -376,13 +370,13 @@ buildPivotTable = (pivotData) ->
     tr.append $("<td class='pvtGrandTotal'>")
         .text(totalAggregator.format val)
         .data("value", val)
-    result.append tr
+    result.append tfoot.append tr
 
     #squirrel this away for later
     result.data "dimensions", [rowKeys.length, colKeys.length]
     
     # decorate the table
-    decorators.decorate(result, 'PivotTable')
+    decorators.decorate(result, 'pivotTable')
     
     return result
 
@@ -398,8 +392,10 @@ $.fn.pivot = (input, opts) ->
         aggregator: aggregators.count()
         derivedAttributes: {},
         renderer: (pivotData) -> buildPivotTable(pivotData)
+        decoratorStyle: 'jquery-ui'
 
     opts = $.extend defaults, opts
+    $.pivotUtilities.decorators.style = opts.decoratorStyle
 
     # iterate through input, accumulating data for cells
     pivotData = buildPivotData(input, opts.cols, opts.rows, 
@@ -420,8 +416,10 @@ $.fn.pivotUI = (input, opts) ->
         aggregators: aggregators
         renderers: renderers
         hiddenAxes: []
+        decoratorStyle: 'jquery-ui'
         cols: [], rows: [], vals: []
     opts = $.extend defaults, opts
+    $.pivotUtilities.decorators.style = opts.decoratorStyle
 
     #cache the input in some useful form
     input = convertToArray(input)
@@ -439,8 +437,8 @@ $.fn.pivotUI = (input, opts) ->
             axisValues[k][v]++
 
     #start building the output
-    uiTable = $("<table class='table table-bordered' cellpadding='5'>")
-
+    uiTable = $("<table class='pvt-ui-table' cellpadding='5'>")
+    console.log axisValues
     #renderers controls, if desired
 
     rendererNames = (x for own x, y of opts.renderers)
@@ -465,7 +463,9 @@ $.fn.pivotUI = (input, opts) ->
 
     for c in tblCols when c not in opts.hiddenAxes
         do (c) ->
-            numKeys = Object.keys(axisValues[c]).length
+            #numKeys = Object.keys(axisValues[c]).length
+            keys = (k for own k,v of axisValues[c])
+            numKeys = keys.length
             colLabel = $("<nobr>").text(c)
             valueList = $("<div>")
                 .css
@@ -488,7 +488,7 @@ $.fn.pivotUI = (input, opts) ->
                 btns.append $("<button>").text(t "Select None").bind "click", ->
                     valueList.find("input").attr "checked", false
                 valueList.append btns
-                for k in Object.keys(axisValues[c]).sort()
+                for k in keys.sort()
                      v = axisValues[c][k]
                      filterItem = $("<label>")
                      filterItem.append $("<input type='checkbox' class='pvtFilter'>")

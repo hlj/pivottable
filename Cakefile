@@ -5,8 +5,9 @@ task 'build:coffee', ->
     flour.minifiers.disable 'js'
     compile 'src/*.coffee', 'build', ->
         flour.getFiles 'build/*.js', (files) ->
-            files.splice(files.indexOf('build/pivot.js'),1)
-            bundle ['build/pivot.js'].concat(files), 'dist/pivot.all.js', ->
+            js_specs = ['build/pivot.js', 'build/decorator_default.js']
+            files.splice(files.indexOf(file),1) for file in js_specs
+            bundle js_specs.concat(files), 'dist/pivot.all.js', ->
                 flour.minifiers.enable 'js'
                 minify 'dist/pivot.all.js', 'dist/pivot.min.js'
                 fs.createReadStream('dist/pivot.all.js').pipe(fs.createWriteStream('examples/pivot.js'));

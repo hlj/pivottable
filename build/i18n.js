@@ -7,7 +7,22 @@
 
   i18n = pvt.i18n;
 
-  i18n["zh"] = i18n["zh-CN"] = {
+  i18n["en"] = {
+    "values for axis": function(args) {
+      return "" + args[0] + " values for " + args[1];
+    },
+    "aggregator.count": "count",
+    "aggregator.countUnique": "countUnique",
+    "aggregator.listUnique": "listUnique",
+    "aggregator.intSum": "intSum",
+    "aggregator.sum": "Sum",
+    "aggregator.average": "average",
+    "aggregator.sumOverSum": "sumOverSum",
+    "aggregator.ub80": "ub80",
+    "aggregator.lb80": "lb80"
+  };
+
+  i18n["zh"] = i18n["zh-CN"] = i18n["zh-cn"] = {
     "Row Barchart": "行内柱状图",
     "Heatmap": "热点图",
     "Row Heatmap": "行热点图",

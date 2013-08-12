@@ -267,21 +267,6 @@
     }
   };
 
-  i18n["en"] = {
-    "values for axis": function(args) {
-      return "" + args[0] + " values for " + args[1];
-    },
-    "aggregator.count": "count",
-    "aggregator.countUnique": "countUnique",
-    "aggregator.listUnique": "listUnique",
-    "aggregator.intSum": "intSum",
-    "aggregator.sum": "Sum",
-    "aggregator.average": "average",
-    "aggregator.sumOverSum": "sumOverSum",
-    "aggregator.ub80": "ub80",
-    "aggregator.lb80": "lb80"
-  };
-
   t = i18n.t;
 
   decorators = {
@@ -328,8 +313,8 @@
     };
     if (Object.prototype.toString.call(input) === '[object Function]') {
       return input(addRow);
-    } else if (Array.isArray(input)) {
-      if (Array.isArray(input[0])) {
+    } else if ($.isArray(input)) {
+      if ($.isArray(input[0])) {
         _results = [];
         for (i in input) {
           if (!__hasProp.call(input, i)) continue;
@@ -591,12 +576,13 @@
   };
 
   buildPivotTable = function(pivotData) {
-    var aggregator, c, colKey, colKeys, cols, i, j, r, result, rowKey, rowKeys, rows, th, totalAggregator, tr, txt, val, x;
+    var aggregator, c, colKey, colKeys, cols, i, j, r, result, rowKey, rowKeys, rows, tbody, tfoot, th, thead, totalAggregator, tr, txt, val, x;
     cols = pivotData.colVars;
     rows = pivotData.rowVars;
     rowKeys = pivotData.getRowKeys();
     colKeys = pivotData.getColKeys();
     result = $("<table class='pvtTable'>");
+    thead = $('<thead>');
     for (j in cols) {
       if (!__hasProp.call(cols, j)) continue;
       c = cols[j];
@@ -620,7 +606,7 @@
       if (parseInt(j) === 0) {
         tr.append($("<th class='pvtTotalLabel'>").text(t("Totals")).attr("rowspan", cols.length + (rows.length === 0 ? 0 : 1)));
       }
-      result.append(tr);
+      thead.append(tr);
     }
     if (rows.length !== 0) {
       tr = $("<tr>");
@@ -634,8 +620,10 @@
         th.addClass("pvtTotalLabel").text(t("Totals"));
       }
       tr.append(th);
-      result.append(tr);
+      thead.append(tr);
     }
+    result.append(thead);
+    tbody = $('<tbody>');
     for (i in rowKeys) {
       if (!__hasProp.call(rowKeys, i)) continue;
       rowKey = rowKeys[i];
@@ -662,8 +650,10 @@
       totalAggregator = pivotData.getAggregator(rowKey, []);
       val = totalAggregator.value();
       tr.append($("<td class='pvtTotal rowTotal row" + i + "'>").text(totalAggregator.format(val)).data("value", val).data("for", "row" + i));
-      result.append(tr);
+      tbody.append(tr);
     }
+    result.append(tbody);
+    tfoot = $('<tfoot>');
     tr = $("<tr>");
     th = $("<th class='pvtTotalLabel'>").text(t("Totals"));
     th.attr("colspan", rows.length + (cols.length === 0 ? 0 : 1));
@@ -678,9 +668,9 @@
     totalAggregator = pivotData.getAggregator([], []);
     val = totalAggregator.value();
     tr.append($("<td class='pvtGrandTotal'>").text(totalAggregator.format(val)).data("value", val));
-    result.append(tr);
+    result.append(tfoot.append(tr));
     result.data("dimensions", [rowKeys.length, colKeys.length]);
-    decorators.decorate(result, 'PivotTable');
+    decorators.decorate(result, 'pivotTable');
     return result;
   };
 
@@ -701,9 +691,11 @@
       derivedAttributes: {},
       renderer: function(pivotData) {
         return buildPivotTable(pivotData);
-      }
+      },
+      decoratorStyle: 'jquery-ui'
     };
     opts = $.extend(defaults, opts);
+    $.pivotUtilities.decorators.style = opts.decoratorStyle;
     pivotData = buildPivotData(input, opts.cols, opts.rows, opts.aggregator, opts.filter, opts.derivedAttributes);
     this.html(opts.renderer(pivotData));
     return this;
@@ -721,11 +713,13 @@
       aggregators: aggregators,
       renderers: renderers,
       hiddenAxes: [],
+      decoratorStyle: 'jquery-ui',
       cols: [],
       rows: [],
       vals: []
     };
     opts = $.extend(defaults, opts);
+    $.pivotUtilities.decorators.style = opts.decoratorStyle;
     input = convertToArray(input);
     tblCols = (function() {
       var _ref, _results;
@@ -765,7 +759,8 @@
       }
       return _results;
     });
-    uiTable = $("<table class='table table-bordered' cellpadding='5'>");
+    uiTable = $("<table class='pvt-ui-table' cellpadding='5'>");
+    console.log(axisValues);
     rendererNames = (function() {
       var _ref1, _results;
       _ref1 = opts.renderers;
@@ -801,8 +796,19 @@
       c = tblCols[_k];
       if (__indexOf.call(opts.hiddenAxes, c) < 0) {
         (function(c) {
-          var btns, colLabel, filterItem, numKeys, v, valueList, _l, _len3, _ref1;
-          numKeys = Object.keys(axisValues[c]).length;
+          var btns, colLabel, filterItem, keys, numKeys, v, valueList, _l, _len3, _ref1;
+          keys = (function() {
+            var _ref1, _results;
+            _ref1 = axisValues[c];
+            _results = [];
+            for (k in _ref1) {
+              if (!__hasProp.call(_ref1, k)) continue;
+              v = _ref1[k];
+              _results.push(k);
+            }
+            return _results;
+          })();
+          numKeys = keys.length;
           colLabel = $("<nobr>").text(c);
           valueList = $("<div>").css({
             "z-index": 100,
@@ -827,7 +833,7 @@
               return valueList.find("input").attr("checked", false);
             }));
             valueList.append(btns);
-            _ref1 = Object.keys(axisValues[c]).sort();
+            _ref1 = keys.sort();
             for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
               k = _ref1[_l];
               v = axisValues[c][k];
@@ -963,17 +969,16 @@
   decorators = pvt.decorators;
 
   decorators['default'] = {
-    PivotTable: function(ele) {
+    pivotTable: function(ele) {
       return $('.pvtVal, .pvtTotal', ele).hover(function() {
         var sels;
         sels = "." + ($.trim($(this)[0].className.replace('pvtVal', '')).split(' ').join(',.'));
-        console.log(sels);
-        $(sels, ele).addClass('pvtVal-cross');
+        $('.pvtTable').find(sels).addClass('pvtVal-cross');
         return $(this).addClass('pvtVal-em');
       }, function() {
         var sels;
         sels = "th ." + ($.trim($(this)[0].className.replace('pvtVal', '')).split(' ').join(',.'));
-        $(sels, ele).removeClass('pvtVal-cross');
+        $('.pvtTable').find(sels).removeClass('pvtVal-cross');
         return $(this).removeClass('pvtVal-em');
       });
     }
@@ -991,9 +996,191 @@
   decorators = pvt.decorators;
 
   decorators['jquery-ui'] = {
-    PivotTable: function(ele) {
+    pivotTable: function(ele) {
+      return ele.addClass('table table-bordered');
+    },
+    pivotUITable: function(ele) {
       return ele.addClass('table table-bordered');
     }
+  };
+
+}).call(this);
+
+;(function() {
+  var $;
+
+  $ = jQuery;
+
+  $.fn.fixedTableHeaderPro = function(method) {
+    var defaults, methods, settings;
+    defaults = {
+      width: '100%',
+      height: '100%',
+      fixedCol: false,
+      fixedFooter: false,
+      cloneEvents: false
+    };
+    methods = {
+      _colSpanInRow: function(tr, tags) {
+        var c;
+        if (tags == null) {
+          tags = 'td';
+        }
+        c = 0;
+        tr.find(tags).each(function() {
+          return c += this.colSpan;
+        });
+        return c;
+      },
+      _scrollBarWidth: function() {
+        var width;
+        document.body.style.overflow = 'hidden';
+        width = document.body.clientWidth;
+        document.body.style.overflow = 'scroll';
+        width -= document.body.clientWidth;
+        if (!width) {
+          width = document.body.offsetWidth - document.body.clientWidth;
+        }
+        document.body.style.overflow = '';
+        return width;
+      },
+      destroy: function() {
+        var wrapper;
+        wrapper = this.parents('.fthp-wrapper-main');
+        if (wrapper.size() > 0) {
+          console.log(wrapper);
+          wrapper.parent().append(this);
+          return wrapper.remove();
+        }
+      },
+      create: function(srcTable, settings) {
+        var defaultCss, fixedColTable, fixedCornerTable, fixedRowTable, maxColSpans, parent, rowSpans, scrollWidth, srcHeight, srcThs, srcWidth, wrapper, wrapperCol, wrapperCorner, wrapperRow, wrapperTable;
+        this.destroy.apply(srcTable);
+        srcWidth = srcTable.width();
+        srcHeight = srcTable.height();
+        scrollWidth = this._scrollBarWidth();
+        if (settings.width > srcWidth) {
+          settings.width = srcWidth + scrollWidth;
+        }
+        if (settings.height > srcHeight) {
+          settings.height = srcHeight + scrollWidth;
+        }
+        srcTable.width(srcWidth).height(srcHeight);
+        defaultCss = {
+          "overflow": "hidden",
+          "margin": "0px",
+          "padding": "0px",
+          "border-width": "0px"
+        };
+        wrapper = $("<div class='fthp-wrapper-main'>").css($.extend({}, defaultCss, {
+          "position": "relative"
+        })).width(settings.width).height(settings.height);
+        parent = srcTable.parent();
+        wrapper.append(wrapperTable = $("<div class='fthp-wrapper-table'>").append(srcTable).css($.extend({}, defaultCss, {
+          "overflow": "scroll",
+          "width": settings.width,
+          "height": settings.height,
+          "position": "relative",
+          "z-index": "35"
+        })).on('scroll', function() {
+          var t;
+          t = $(this);
+          wrapperRow.scrollLeft(t.scrollLeft());
+          if (typeof wrapperCol !== "undefined" && wrapperCol !== null) {
+            return wrapperCol.scrollTop(t.scrollTop());
+          }
+        }));
+        parent.append(wrapper);
+        fixedRowTable = srcTable.clone(settings.cloneEvents, settings.cloneEvents);
+        fixedRowTable.addClass('fthp-header').height('auto');
+        fixedRowTable.find('tbody, tfoot').empty();
+        srcThs = srcTable.find('thead th');
+        fixedRowTable.find('thead th').attr('id', null).each(function(i, v) {
+          var srcTh;
+          srcTh = srcThs.eq(i);
+          $(this).width(srcTh.width() + 1).height(srcTh.height()).css('minWidth', srcTh.width()).css('maxWidth', srcTh.width());
+          if (!/webkit/.test(navigator.userAgent.toLowerCase())) {
+            return $(this).outerWidth(srcTh.outerWidth() + 1).innerWidth(srcTh.innerWidth() + 1);
+          }
+        });
+        wrapper.append(wrapperRow = $("<div class='fthp-wrapper-row'>").append(fixedRowTable).css($.extend({}, defaultCss, {
+          "width": settings.width - scrollWidth,
+          "position": "relative",
+          "z-index": "45"
+        })));
+        if (settings.fixedCol) {
+          fixedColTable = srcTable.clone(settings.cloneEvents, settings.cloneEvents);
+          fixedColTable.addClass('fthp-columns').width('auto');
+          srcThs = srcTable.find('th');
+          fixedColTable.find('th').attr('id', null).each(function(i, v) {
+            var srcTh;
+            srcTh = srcThs.eq(i);
+            return $(this).width(srcTh.width() + 1).height(srcTh.height()).css('minWidth', srcTh.width());
+          });
+          fixedColTable.find('td').remove();
+          maxColSpans = this._colSpanInRow(fixedColTable.find('tbody tr:first'), 'th');
+          rowSpans = [];
+          fixedColTable.find('thead tr').each(function() {
+            var cs, currentColSpans, _i, _len, _results;
+            currentColSpans = 0;
+            $('th', this).each(function() {
+              var cs, _i, _len;
+              for (_i = 0, _len = rowSpans.length; _i < _len; _i++) {
+                cs = rowSpans[_i];
+                if (cs[0] > 0) {
+                  currentColSpans += cs[1];
+                }
+              }
+              currentColSpans += this.colSpan;
+              if (this.rowSpan > 1) {
+                rowSpans.push([this.rowSpan, this.colSpan]);
+              }
+              if (currentColSpans >= maxColSpans) {
+                $(this).nextAll().remove();
+                return false;
+              }
+            });
+            _results = [];
+            for (_i = 0, _len = rowSpans.length; _i < _len; _i++) {
+              cs = rowSpans[_i];
+              if (cs[0] > 0) {
+                _results.push(cs[0]--);
+              }
+            }
+            return _results;
+          });
+          fixedCornerTable = fixedColTable.clone(settings.cloneEvents, settings.cloneEvents);
+          fixedCornerTable.addClass('fthp-corner').width('auto').height('auto');
+          fixedCornerTable.find('tbody tr, tfoot tr').remove();
+          wrapper.append(wrapperCol = $("<div class='fthp-wrapper-col'>").append(fixedColTable).css($.extend({}, defaultCss, {
+            "height": settings.height - scrollWidth,
+            "position": "relative",
+            "z-index": "40"
+          })));
+          wrapper.append(wrapperCorner = $("<div class='fthp-wrapper-corner'>").append(fixedCornerTable).css($.extend({}, defaultCss, {
+            "position": "relative",
+            "z-index": "50"
+          })));
+        }
+        if (wrapperCol != null) {
+          wrapperCol.width(fixedColTable.width() + 2);
+        }
+        if (wrapperCorner != null) {
+          wrapperCorner.width(fixedCornerTable.width() + 2).height(fixedCornerTable.height() + 2);
+        }
+        fixedRowTable.css('maxWidth', srcWidth).width(srcWidth);
+        return wrapper.children().offset(wrapper.offset());
+      }
+    };
+    if (typeof method === 'string' && (methods[method] != null)) {
+      methods[method].apply(this);
+    } else if (typeof method === 'object' && method.constructor === Object) {
+      settings = $.extend(defaults, method);
+      methods.create(this, settings);
+    } else {
+      console.log("Error: " + method + " is not a valid argument!");
+    }
+    return this;
   };
 
 }).call(this);
@@ -1007,7 +1194,22 @@
 
   i18n = pvt.i18n;
 
-  i18n["zh"] = i18n["zh-CN"] = {
+  i18n["en"] = {
+    "values for axis": function(args) {
+      return "" + args[0] + " values for " + args[1];
+    },
+    "aggregator.count": "count",
+    "aggregator.countUnique": "countUnique",
+    "aggregator.listUnique": "listUnique",
+    "aggregator.intSum": "intSum",
+    "aggregator.sum": "Sum",
+    "aggregator.average": "average",
+    "aggregator.sumOverSum": "sumOverSum",
+    "aggregator.ub80": "ub80",
+    "aggregator.lb80": "lb80"
+  };
+
+  i18n["zh"] = i18n["zh-CN"] = i18n["zh-cn"] = {
     "Row Barchart": "行内柱状图",
     "Heatmap": "热点图",
     "Row Heatmap": "行热点图",
