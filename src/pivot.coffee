@@ -98,10 +98,19 @@ derivers =
         
 i18n =
     current: null
-    ln: -> i18n.current ? i18n.current = (window.navigator.userLanguage || window.navigator.language)
+    ln: -> 
+        unless i18n.current?
+            lstr = window.navigator.userLanguage || window.navigator.language
+            i18n.current = i18n[lstr]
+            # some browser use lower case for national code 
+            unless i18n.current?
+                lstrs = lstr.split('-')
+                lstrs[1] = lstrs[1].toUpperCase() if lstrs.length is 2
+                i18n.current = i18n[lstrs.join('-')] ? i18n[lstrs[0]] ? i18n["en"]
+        return i18n.current
+        
     t: (str, args...) -> 
-        ln_def = i18n[i18n.ln()] ? i18n["en"]
-        f = ln_def?[str]
+        f = i18n.ln()?[str]
         if f?
             if Object.prototype.toString.call(f) == '[object Function]'
                 return f(args)
@@ -438,7 +447,6 @@ $.fn.pivotUI = (input, opts) ->
 
     #start building the output
     uiTable = $("<table class='pvt-ui-table' cellpadding='5'>")
-    console.log axisValues
     #renderers controls, if desired
 
     rendererNames = (x for own x, y of opts.renderers)

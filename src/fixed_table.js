@@ -39,65 +39,69 @@ chrome22.0 */
             } else if ($.browser.msie) {
                 var colBorderWidth = parseInt(col.css('border-width'));
                 if (colBorderWidth) {
-                    col.width(col.width() + colBorderWidth + colBorderWidth / 2); //IE7?? } } }); //make head 
-                    var dummyHead = thead.clone(); 
-                    thead.appendTo(fixTable);
-                    dummyHead.prependTo(elem);
-                    var tbodyWrapper = elem.wrap('<div ></div>')
-                        .parent();
-                    var tableWrapper = tbodyWrapper.wrap('<div />')
-                        .parent();
-                    setTableWidth();
-                    setWrapperSize();
-                    fixTable.prependTo(tableWrapper);
-                    return this;
+                    col.width(col.width() + colBorderWidth + colBorderWidth / 2); //IE7??
+                }
+            }
+        });
+        //make head 
+        var dummyHead = thead.clone();
+        thead.appendTo(fixTable);
+        dummyHead.prependTo(elem);
+        var tbodyWrapper = elem.wrap('<div ></div>')
+            .parent();
+        var tableWrapper = tbodyWrapper.wrap('<div />')
+            .parent();
+        setTableWidth();
+        setWrapperSize();
+        fixTable.prependTo(tableWrapper);
+        return this;
 
-                    function setTableWidth() {
-                        if ($.browser.mozilla) {
-                            elem.width(elem.width());
-                            fixTable.css('width', elem.css('width'));
-                        } else if ($.browser.chrome) {
-                            elem.width(elem.outerWidth());
-                            fixTable.width(elem.outerWidth());
-                        } else if ($.browser.msie) {
-                            elem.width(elem.outerWidth());
-                            fixTable.width(elem.outerWidth());
-                        } else {
-                            elem.width(elem.outerWidth());
-                            fixTable.width(elem.outerWidth());
-                        }
-                    }
+        function setTableWidth() {
+            if ($.browser.mozilla) {
+                elem.width(elem.width());
+                fixTable.css('width', elem.css('width'));
+            } else if ($.browser.chrome) {
+                elem.width(elem.outerWidth());
+                fixTable.width(elem.outerWidth());
+            } else if ($.browser.msie) {
+                elem.width(elem.outerWidth());
+                fixTable.width(elem.outerWidth());
+            } else {
+                elem.width(elem.outerWidth());
+                fixTable.width(elem.outerWidth());
+            }
+        }
 
-                    function setWrapperSize() {
-                        var elemWidth = elem.outerWidth(true);
-                        var elemHeight = elem.outerHeight(true);
-                        var scrollBarWidth = 20;
-                        if (options.width == '') {
-                            tbodyWrapper.css({
-                                'width': (elemWidth + scrollBarWidth) + 'px',
-                                'height': options.height,
-                                'overflow-x': 'hidden',
-                                'overflow-y': 'auto'
-                            });
-                        } else {
-                            if (elemWidth <= options.width) {
-                                tbodyWrapper.css({
-                                    'width': options.width + 'px',
-                                    'height': options.height,
-                                    'overflow-x': 'hidden',
-                                    'overflow-y': 'auto'
-                                });
-                            } else {
-                                tableWrapper.css({
-                                    'width': options.width,
-                                    'height': options.height,
-                                    'overflow': 'auto'
-                                });
-                                tableWrapper.scroll(function() {
-                                    fixTable.css('top', tableWrapper.scrollTop() + 'px');
-                                });
-                            }
-                        }
-                    }
-                };
-            })(jQuery);
+        function setWrapperSize() {
+            var elemWidth = elem.outerWidth(true);
+            var elemHeight = elem.outerHeight(true);
+            var scrollBarWidth = 20;
+            if (options.width == '') {
+                tbodyWrapper.css({
+                    'width': (elemWidth + scrollBarWidth) + 'px',
+                    'height': options.height,
+                    'overflow-x': 'hidden',
+                    'overflow-y': 'auto'
+                });
+            } else {
+                if (elemWidth <= options.width) {
+                    tbodyWrapper.css({
+                        'width': options.width + 'px',
+                        'height': options.height,
+                        'overflow-x': 'hidden',
+                        'overflow-y': 'auto'
+                    });
+                } else {
+                    tableWrapper.css({
+                        'width': options.width,
+                        'height': options.height,
+                        'overflow': 'auto'
+                    });
+                    tableWrapper.scroll(function() {
+                        fixTable.css('top', tableWrapper.scrollTop() + 'px');
+                    });
+                }
+            }
+        }
+    };
+})(jQuery);

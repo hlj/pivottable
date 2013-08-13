@@ -24,6 +24,14 @@
 
 $ = jQuery
 
+# for jquery 1.9, $.browser
+unless $.browser?
+    $.browser = 
+        mozilla: /mozilla/.test(navigator.userAgent.toLowerCase()) and not /webkit/.test(navigator.userAgent.toLowerCase())
+        webkit: /webkit/.test(navigator.userAgent.toLowerCase())
+        opera: /opera/.test(navigator.userAgent.toLowerCase())
+        msie: /msie/.test(navigator.userAgent.toLowerCase())
+
 $.fn.fixedTableHeaderPro = (method) ->
     defaults =
         width: '100%'
@@ -34,11 +42,27 @@ $.fn.fixedTableHeaderPro = (method) ->
     
     methods =
         # internal helper function
+        # sum the colspan in a row
         _colSpanInRow: (tr, tags='td') ->
             c = 0
             tr.find(tags).each ->
                 c += this.colSpan
             return c
+            
+        _cellWidth: (ele) ->
+            w = ele.width()
+            bw = parseInt(ele.css('border-width')) || 1
+            if $.browser.mozilla
+                w
+            else if $.browser.chrome
+                w + bw
+            else if $.browser.msie
+                w + bw + bw /2  
+        
+        _eleWidth: (ele) ->
+            w = ele.width()
+            ow = ele.outerWidth()
+            if $.browser.mozilla then ow else ow
             
         _scrollBarWidth: ->
             document.body.style.overflow = 'hidden' 
@@ -61,17 +85,24 @@ $.fn.fixedTableHeaderPro = (method) ->
                 
         # Create a fixed header table from source table
         create: (srcTable, settings) ->
+            self = this
             @destroy.apply(srcTable)
             
             srcWidth = srcTable.width() 
             srcHeight  = srcTable.height()
+            srcOuterWidth = srcTable.outerWidth(true)
+            srcOuterHeight = srcTable.outerHeight(true)
+            srcAdjustWidth = @_eleWidth srcTable
             scrollWidth = @_scrollBarWidth()
             
-            settings.width = srcWidth + scrollWidth if settings.width > srcWidth
-            settings.height = srcHeight + scrollWidth if settings.height > srcHeight
+            if $.isNumeric(settings.width)
+                settings.width = parseInt(settings.width)
+                settings.width = srcOuterWidth + scrollWidth if settings.width > srcOuterWidth
+            if $.isNumeric(settings.height)
+                settings.height = parseInt(settings.height) 
+                settings.height = srcOuterHeight + scrollWidth if settings.height > srcOuterHeight   
             
-            
-            srcTable.width(srcWidth).height(srcHeight)
+            srcTable.width(srcAdjustWidth).height(srcHeight)
             # create main wrapper
             defaultCss = {"overflow": "hidden", "margin": "0px", "padding": "0px", "border-width": "0px"}
             wrapper = $("<div class='fthp-wrapper-main'>")
@@ -84,8 +115,8 @@ $.fn.fixedTableHeaderPro = (method) ->
             wrapper.append wrapperTable = $("<div class='fthp-wrapper-table'>").append(srcTable)
                 .css( $.extend {}, defaultCss,
                           "overflow": "scroll", 
-                          "width": settings.width, #-(if fixedColTable? then fixedColTable.width else 0), 
-                          "height": settings.height, #-fixedRowTable.height,
+                          "width": settings.width,
+                          "height": settings.height,
                           "position": "relative", "z-index": "35" )
                 .on 'scroll', ->
                     t = $(this)
@@ -102,17 +133,13 @@ $.fn.fixedTableHeaderPro = (method) ->
             srcThs = srcTable.find('thead th')
             fixedRowTable.find('thead th').attr('id',null).each (i,v)-> 
                 srcTh = srcThs.eq(i)
-                $(this).width(srcTh.width()+1)
-                    .height(srcTh.height())
-                    .css('minWidth', srcTh.width())
-                    .css('maxWidth',srcTh.width())
-                unless /webkit/.test(navigator.userAgent.toLowerCase())
-                    $(this).outerWidth(srcTh.outerWidth()+1)
-                        .innerWidth(srcTh.innerWidth()+1)
+                w = self._cellWidth(srcTh)
+                $(this).width(w)
+                    .css('minWidth',srcTh.width())
+                    .css('maxWidth',w)         
             # create and append row wrapper
             wrapper.append wrapperRow = $("<div class='fthp-wrapper-row'>").append(fixedRowTable)
                 .css($.extend {}, defaultCss, {"width": settings.width - scrollWidth, "position": "relative", "z-index": "45"})
-            
             
             # if need fix cols, create a clone
             if settings.fixedCol
@@ -122,7 +149,10 @@ $.fn.fixedTableHeaderPro = (method) ->
                 srcThs = srcTable.find('th')
                 fixedColTable.find('th').attr('id',null).each (i,v)->
                     srcTh = srcThs.eq(i)
-                    $(this).width(srcTh.width()+1).height(srcTh.height()).css('minWidth', srcTh.width())
+                    w = self._cellWidth(srcTh)
+                    $(this).width(w)
+                        .css('minWidth',srcTh.width())
+                        .css('maxWidth',w)
                 # remove other elements
                 fixedColTable.find('td').remove()
                 
@@ -145,7 +175,7 @@ $.fn.fixedTableHeaderPro = (method) ->
                     
                 # create a clone for fixed corner
                 fixedCornerTable = fixedColTable.clone settings.cloneEvents, settings.cloneEvents
-                fixedCornerTable.addClass('fthp-corner').width('auto').height('auto')
+                fixedCornerTable.removeClass('fthp-columns').addClass('fthp-corner').width('auto').height('auto')
                 fixedCornerTable.find('tbody tr, tfoot tr').remove()
                 
                 # create col and corner wrapper
@@ -154,8 +184,9 @@ $.fn.fixedTableHeaderPro = (method) ->
                 wrapper.append wrapperCorner = $("<div class='fthp-wrapper-corner'>").append(fixedCornerTable)
                     .css($.extend {}, defaultCss,{"position": "relative", "z-index": "50"});
            
-            wrapperCol.width(fixedColTable.width()+2) if wrapperCol?
-            wrapperCorner.width(fixedCornerTable.width()+2).height(fixedCornerTable.height()+2) if wrapperCorner?
+            bw = parseInt(fixedColTable.find('th:first').css('border-width')) || 1
+            wrapperCol.width(fixedColTable.width() + bw * 2) if wrapperCol?
+            wrapperCorner.width(fixedCornerTable.width()+ bw* 2).height(fixedCornerTable.height()+ bw*2) if wrapperCorner?
             fixedRowTable.css('maxWidth',srcWidth).width(srcWidth)
             wrapper.children().offset wrapper.offset()
                 
