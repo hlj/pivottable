@@ -247,14 +247,24 @@
   i18n = {
     current: null,
     ln: function() {
-      var _ref;
-      return (_ref = i18n.current) != null ? _ref : i18n.current = window.navigator.userLanguage || window.navigator.language;
+      var lstr, lstrs, _ref, _ref1;
+      if (i18n.current == null) {
+        lstr = window.navigator.userLanguage || window.navigator.language;
+        i18n.current = i18n[lstr];
+        if (i18n.current == null) {
+          lstrs = lstr.split('-');
+          if (lstrs.length === 2) {
+            lstrs[1] = lstrs[1].toUpperCase();
+          }
+          i18n.current = (_ref = (_ref1 = i18n[lstrs.join('-')]) != null ? _ref1 : i18n[lstrs[0]]) != null ? _ref : i18n["en"];
+        }
+      }
+      return i18n.current;
     },
     t: function() {
-      var args, f, ln_def, str, _ref;
+      var args, f, str, _ref;
       str = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      ln_def = (_ref = i18n[i18n.ln()]) != null ? _ref : i18n["en"];
-      f = ln_def != null ? ln_def[str] : void 0;
+      f = (_ref = i18n.ln()) != null ? _ref[str] : void 0;
       if (f != null) {
         if (Object.prototype.toString.call(f) === '[object Function]') {
           return f(args);
@@ -760,7 +770,6 @@
       return _results;
     });
     uiTable = $("<table class='pvt-ui-table' cellpadding='5'>");
-    console.log(axisValues);
     rendererNames = (function() {
       var _ref1, _results;
       _ref1 = opts.renderers;

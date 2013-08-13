@@ -7,7 +7,7 @@
 
   i18n = pvt.i18n;
 
-  i18n["en"] = {
+  i18n["en"] = i18n["en-US"] = {
     "values for axis": function(args) {
       return "" + args[0] + " values for " + args[1];
     },
@@ -22,7 +22,7 @@
     "aggregator.lb80": "lb80"
   };
 
-  i18n["zh"] = i18n["zh-CN"] = i18n["zh-cn"] = {
+  i18n["zh"] = i18n["zh-CN"] = {
     "Row Barchart": "行内柱状图",
     "Heatmap": "热点图",
     "Row Heatmap": "行热点图",

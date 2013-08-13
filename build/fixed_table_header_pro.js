@@ -3,6 +3,15 @@
 
   $ = jQuery;
 
+  if ($.browser == null) {
+    $.browser = {
+      mozilla: /mozilla/.test(navigator.userAgent.toLowerCase()) && !/webkit/.test(navigator.userAgent.toLowerCase()),
+      webkit: /webkit/.test(navigator.userAgent.toLowerCase()),
+      opera: /opera/.test(navigator.userAgent.toLowerCase()),
+      msie: /msie/.test(navigator.userAgent.toLowerCase())
+    };
+  }
+
   $.fn.fixedTableHeaderPro = function(method) {
     var defaults, methods, settings;
     defaults = {
@@ -23,6 +32,28 @@
           return c += this.colSpan;
         });
         return c;
+      },
+      _cellWidth: function(ele) {
+        var bw, w;
+        w = ele.width();
+        bw = parseInt(ele.css('border-width')) || 1;
+        if ($.browser.mozilla) {
+          return w;
+        } else if ($.browser.chrome) {
+          return w + bw;
+        } else if ($.browser.msie) {
+          return w + bw + bw / 2;
+        }
+      },
+      _eleWidth: function(ele) {
+        var ow, w;
+        w = ele.width();
+        ow = ele.outerWidth();
+        if ($.browser.mozilla) {
+          return ow;
+        } else {
+          return ow;
+        }
       },
       _scrollBarWidth: function() {
         var width;
@@ -46,18 +77,28 @@
         }
       },
       create: function(srcTable, settings) {
-        var defaultCss, fixedColTable, fixedCornerTable, fixedRowTable, maxColSpans, parent, rowSpans, scrollWidth, srcHeight, srcThs, srcWidth, wrapper, wrapperCol, wrapperCorner, wrapperRow, wrapperTable;
+        var bw, defaultCss, fixedColTable, fixedCornerTable, fixedRowTable, maxColSpans, parent, rowSpans, scrollWidth, self, srcAdjustWidth, srcHeight, srcOuterHeight, srcOuterWidth, srcThs, srcWidth, wrapper, wrapperCol, wrapperCorner, wrapperRow, wrapperTable;
+        self = this;
         this.destroy.apply(srcTable);
         srcWidth = srcTable.width();
         srcHeight = srcTable.height();
+        srcOuterWidth = srcTable.outerWidth(true);
+        srcOuterHeight = srcTable.outerHeight(true);
+        srcAdjustWidth = this._eleWidth(srcTable);
         scrollWidth = this._scrollBarWidth();
-        if (settings.width > srcWidth) {
-          settings.width = srcWidth + scrollWidth;
+        if ($.isNumeric(settings.width)) {
+          settings.width = parseInt(settings.width);
+          if (settings.width > srcOuterWidth) {
+            settings.width = srcOuterWidth + scrollWidth;
+          }
         }
-        if (settings.height > srcHeight) {
-          settings.height = srcHeight + scrollWidth;
+        if ($.isNumeric(settings.height)) {
+          settings.height = parseInt(settings.height);
+          if (settings.height > srcOuterHeight) {
+            settings.height = srcOuterHeight + scrollWidth;
+          }
         }
-        srcTable.width(srcWidth).height(srcHeight);
+        srcTable.width(srcAdjustWidth).height(srcHeight);
         defaultCss = {
           "overflow": "hidden",
           "margin": "0px",
@@ -88,12 +129,10 @@
         fixedRowTable.find('tbody, tfoot').empty();
         srcThs = srcTable.find('thead th');
         fixedRowTable.find('thead th').attr('id', null).each(function(i, v) {
-          var srcTh;
+          var srcTh, w;
           srcTh = srcThs.eq(i);
-          $(this).width(srcTh.width() + 1).height(srcTh.height()).css('minWidth', srcTh.width()).css('maxWidth', srcTh.width());
-          if (!/webkit/.test(navigator.userAgent.toLowerCase())) {
-            return $(this).outerWidth(srcTh.outerWidth() + 1).innerWidth(srcTh.innerWidth() + 1);
-          }
+          w = self._cellWidth(srcTh);
+          return $(this).width(w).css('minWidth', srcTh.width()).css('maxWidth', w);
         });
         wrapper.append(wrapperRow = $("<div class='fthp-wrapper-row'>").append(fixedRowTable).css($.extend({}, defaultCss, {
           "width": settings.width - scrollWidth,
@@ -105,9 +144,10 @@
           fixedColTable.addClass('fthp-columns').width('auto');
           srcThs = srcTable.find('th');
           fixedColTable.find('th').attr('id', null).each(function(i, v) {
-            var srcTh;
+            var srcTh, w;
             srcTh = srcThs.eq(i);
-            return $(this).width(srcTh.width() + 1).height(srcTh.height()).css('minWidth', srcTh.width());
+            w = self._cellWidth(srcTh);
+            return $(this).width(w).css('minWidth', srcTh.width()).css('maxWidth', w);
           });
           fixedColTable.find('td').remove();
           maxColSpans = this._colSpanInRow(fixedColTable.find('tbody tr:first'), 'th');
@@ -142,7 +182,7 @@
             return _results;
           });
           fixedCornerTable = fixedColTable.clone(settings.cloneEvents, settings.cloneEvents);
-          fixedCornerTable.addClass('fthp-corner').width('auto').height('auto');
+          fixedCornerTable.removeClass('fthp-columns').addClass('fthp-corner').width('auto').height('auto');
           fixedCornerTable.find('tbody tr, tfoot tr').remove();
           wrapper.append(wrapperCol = $("<div class='fthp-wrapper-col'>").append(fixedColTable).css($.extend({}, defaultCss, {
             "height": settings.height - scrollWidth,
@@ -154,11 +194,12 @@
             "z-index": "50"
           })));
         }
+        bw = parseInt(fixedColTable.find('th:first').css('border-width')) || 1;
         if (wrapperCol != null) {
-          wrapperCol.width(fixedColTable.width() + 2);
+          wrapperCol.width(fixedColTable.width() + bw * 2);
         }
         if (wrapperCorner != null) {
-          wrapperCorner.width(fixedCornerTable.width() + 2).height(fixedCornerTable.height() + 2);
+          wrapperCorner.width(fixedCornerTable.width() + bw * 2).height(fixedCornerTable.height() + bw * 2);
         }
         fixedRowTable.css('maxWidth', srcWidth).width(srcWidth);
         return wrapper.children().offset(wrapper.offset());
