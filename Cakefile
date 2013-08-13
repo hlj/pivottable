@@ -62,5 +62,5 @@ task 'bundle', ->
     invoke 'bundle:css'
     
 task 'watch', ->
-    watch 'src/*.coffee', -> invoke 'bundle:js'
-    watch 'src/*.less', -> invoke 'bundle:css'
+    watch 'src/**/*.coffee', -> invoke 'bundle:js'
+    watch 'src/**/*.less', -> invoke 'bundle:css'

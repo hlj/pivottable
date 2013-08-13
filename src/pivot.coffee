@@ -96,6 +96,11 @@ derivers =
             select = selector
         (row) -> "#{select(row) - select(row) % binWidth}"
         
+        
+        
+        
+
+# i18n supporter
 i18n =
     current: null
     ln: -> 
@@ -121,13 +126,17 @@ i18n =
     
 t = i18n.t
 
+# define decorators
 decorators =
     style: 'jquery-ui'
     decorate: (element, target)->
         decorators.default[target](element)
         decorators[decorators.style][target](element)
+        
+# plugins
+plugins = {}
 
-$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers, i18n, decorators}
+$.pivotUtilities = {aggregatorTemplates, aggregators, renderers, derivers, i18n, decorators, plugins}
 
 ###
 functions for accessing input
@@ -402,6 +411,7 @@ $.fn.pivot = (input, opts) ->
         derivedAttributes: {},
         renderer: (pivotData) -> buildPivotTable(pivotData)
         decoratorStyle: 'jquery-ui'
+        plugins: {}
 
     opts = $.extend defaults, opts
     $.pivotUtilities.decorators.style = opts.decoratorStyle
@@ -410,10 +420,9 @@ $.fn.pivot = (input, opts) ->
     pivotData = buildPivotData(input, opts.cols, opts.rows, 
                                 opts.aggregator, opts.filter, 
                                 opts.derivedAttributes)
-
-    @html opts.renderer pivotData
-
-    return this
+                                
+    @html pvtTable = opts.renderer pivotData
+    $.pivotUtilities.plugins[k](pvtTable, v) for k, v of opts.plugins
 
 ###
 UI code, calls pivot table above
@@ -426,6 +435,7 @@ $.fn.pivotUI = (input, opts) ->
         renderers: renderers
         hiddenAxes: []
         decoratorStyle: 'jquery-ui'
+        plugins: {}
         cols: [], rows: [], vals: []
     opts = $.extend defaults, opts
     $.pivotUtilities.decorators.style = opts.decoratorStyle
@@ -562,7 +572,7 @@ $.fn.pivotUI = (input, opts) ->
 
     #set up for refreshing
     refresh = ->
-        subopts = {derivedAttributes: opts.derivedAttributes}
+        subopts = {derivedAttributes: opts.derivedAttributes, decoratorStyle: opts.decoratorStyle, plugins: opts.plugins}
         subopts.cols = []
         subopts.rows = []
         vals = []

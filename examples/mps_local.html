@@ -28,7 +28,14 @@
                         },
                         rows: ["Province"],
                         cols: ["Party"],
-                        rendererName: "Heatmap"
+                        rendererName: "Heatmap",
+                        plugins: {
+                            fixedTableHeader: {
+                                width: 700,
+                                height: 400,
+                                fixedCol: true
+                            }
+                        }
                     });
                 });
         </script>

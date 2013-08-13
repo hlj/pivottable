@@ -1,5 +1,5 @@
 (function() {
-  var $, PivotData, addCommas, aggregatorTemplates, aggregators, buildPivotData, buildPivotTable, convertToArray, decorators, deriveAttributes, derivers, forEachRow, i18n, numberFormat, renderers, spanSize, t,
+  var $, PivotData, addCommas, aggregatorTemplates, aggregators, buildPivotData, buildPivotTable, convertToArray, decorators, deriveAttributes, derivers, forEachRow, i18n, numberFormat, plugins, renderers, spanSize, t,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
@@ -287,13 +287,16 @@
     }
   };
 
+  plugins = {};
+
   $.pivotUtilities = {
     aggregatorTemplates: aggregatorTemplates,
     aggregators: aggregators,
     renderers: renderers,
     derivers: derivers,
     i18n: i18n,
-    decorators: decorators
+    decorators: decorators,
+    plugins: plugins
   };
 
   /*
@@ -690,7 +693,7 @@
 
 
   $.fn.pivot = function(input, opts) {
-    var defaults, pivotData;
+    var defaults, k, pivotData, pvtTable, v, _ref, _results;
     defaults = {
       cols: [],
       rows: [],
@@ -702,13 +705,20 @@
       renderer: function(pivotData) {
         return buildPivotTable(pivotData);
       },
-      decoratorStyle: 'jquery-ui'
+      decoratorStyle: 'jquery-ui',
+      plugins: {}
     };
     opts = $.extend(defaults, opts);
     $.pivotUtilities.decorators.style = opts.decoratorStyle;
     pivotData = buildPivotData(input, opts.cols, opts.rows, opts.aggregator, opts.filter, opts.derivedAttributes);
-    this.html(opts.renderer(pivotData));
-    return this;
+    this.html(pvtTable = opts.renderer(pivotData));
+    _ref = opts.plugins;
+    _results = [];
+    for (k in _ref) {
+      v = _ref[k];
+      _results.push($.pivotUtilities.plugins[k](pvtTable, v));
+    }
+    return _results;
   };
 
   /*
@@ -724,6 +734,7 @@
       renderers: renderers,
       hiddenAxes: [],
       decoratorStyle: 'jquery-ui',
+      plugins: {},
       cols: [],
       rows: [],
       vals: []
@@ -912,7 +923,9 @@
     refresh = function() {
       var exclusions, renderer, subopts, vals;
       subopts = {
-        derivedAttributes: opts.derivedAttributes
+        derivedAttributes: opts.derivedAttributes,
+        decoratorStyle: opts.decoratorStyle,
+        plugins: opts.plugins
       };
       subopts.cols = [];
       subopts.rows = [];
