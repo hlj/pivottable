@@ -840,7 +840,7 @@
       rendererNames.unshift("None");
       rendererSelector = decorators.decorate(uiTable, 'createRendererSelector', rendererNames, refresh);
     }
-    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues);
+    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues, refresh);
     tr1 = $("<tr>");
     aggregator = decorators.decorate(tr1, 'createAggregatorMenu', opts.aggregators, refresh);
     tr1.append($("<td id='vals' class='pvtAxisContainer pvtHorizList'>").css("text-align", "center").append(aggregator).append($("<br>")));
@@ -856,8 +856,10 @@
     refresh();
     $(".pvtAxisContainer").sortable({
       connectWith: ".pvtAxisContainer",
-      items: 'li'
+      items: '.data-label',
+      handle: '.handle'
     }).bind("sortstop", refresh);
+    decorators.decorate(uiTable, 'bindEvents');
     return this;
   };
 
@@ -912,6 +914,156 @@
 
   decorators = pvt.decorators;
 
+  decorators['bootstrap'] = {
+    pivotTable: function() {
+      this.addClass('table table-bordered');
+      return this;
+    },
+    pivotUITable: function() {
+      this.addClass('table');
+      return this;
+    },
+    createRendererSelector: function(rendererNames, change_callback) {
+      var btn, container, controls, nav, x, _i, _len;
+      controls = $("<td colspan='2' align='center'>");
+      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Effects:")) + "</a>\n<ul class=\"nav\">\n<li>\n    <div class='btn-group' data-toggle='buttons-radio'></div>\n</li>\n</ul>\n</div>\n</div>");
+      controls.append(nav);
+      container = nav.find(".btn-group");
+      for (_i = 0, _len = rendererNames.length; _i < _len; _i++) {
+        x = rendererNames[_i];
+        btn = $("<button  type='button' class='btn' id='renderers_" + (x.replace(/\s/g, "")) + "'>" + (t(x)) + "</button>").data('val', x);
+        container.append(btn);
+      }
+      this.append($("<tr>").append(controls));
+      $('button', container).bind("click", function() {
+        container.data('selected', $(this).data('val'));
+        return change_callback();
+      });
+      return container;
+    },
+    createColList: function(tblCols, hiddenAxes, axisValues, change_callback) {
+      var c, colList, container, nav, _i, _len;
+      colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>");
+      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Fields:")) + "</a>\n</div>\n</div>");
+      colList.append(nav);
+      container = nav.find(".navbar-inner");
+      for (_i = 0, _len = tblCols.length; _i < _len; _i++) {
+        c = tblCols[_i];
+        if (__indexOf.call(hiddenAxes, c) < 0) {
+          (function(c) {
+            var btn, filterItem, k, keys, li, numKeys, v, valueList, _j, _len1, _ref;
+            keys = (function() {
+              var _ref, _results;
+              _ref = axisValues[c];
+              _results = [];
+              for (k in _ref) {
+                if (!__hasProp.call(_ref, k)) continue;
+                v = _ref[k];
+                _results.push(k);
+              }
+              return _results;
+            })();
+            numKeys = keys.length;
+            btn = $("    \n <div class='btn-group data-label' id='axis_" + (c.replace(/\s/g, "")) + "'>\n     <span class='btn handle'>" + c + "</span>\n     <button class=\"btn dropdown-toggle\" data-toggle=\"dropdown\">\n         <span class=\"icon-filter\"></span>\n     </button>\n </div>\n").data('name', c);
+            valueList = $("<ul class='dropdown-menu'>");
+            valueList.append($("<li>").text(t("values for axis", numKeys, c)));
+            if (numKeys > 20) {
+              valueList.append($("<li>").text(t("(too many to list)")));
+            } else {
+              li = $('<li>');
+              li.append($("<button class='btn btn-min'>").text(t("Select All")).bind("click", function() {
+                return valueList.find("input").attr("checked", true);
+              }));
+              li.append($("<button class='btn btn-min'>").text(t("Select None")).bind("click", function() {
+                return valueList.find("input").attr("checked", false);
+              }));
+              valueList.append(li);
+              _ref = keys.sort();
+              for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                k = _ref[_j];
+                v = axisValues[c][k];
+                filterItem = $("<label>");
+                filterItem.append($("<input type='checkbox' class='pvtFilter'>").attr("checked", true).data("filter", [c, k]));
+                filterItem.append($("<span>").text("" + k + " (" + v + ")"));
+                valueList.append($("<li>").append(filterItem));
+              }
+            }
+            $('li', valueList).click(function(e) {
+              return event.stopPropagation();
+            });
+            btn.find('.dropdown-toggle').on('click.filter', function() {
+              return $(document).one('click.filter', function() {
+                console.log('click');
+                return change_callback();
+              });
+            });
+            return container.append(btn.append(valueList));
+          })(c);
+        }
+      }
+      this.append($("<tr>").append(colList));
+      return container;
+    },
+    createAggregatorMenu: function(aggregators, change_callback) {
+      var aggregator, x;
+      aggregator = $("<select id='aggregator'>").css("margin-bottom", "5px");
+      for (x in aggregators) {
+        if (!__hasProp.call(aggregators, x)) continue;
+        aggregator.append($("<option>").val(x).text(t("aggregator." + x)));
+      }
+      aggregator.bind("change", change_callback);
+      return aggregator;
+    },
+    initialUI: function() {
+      var x, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+      _ref = this.cols;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        x = _ref[_i];
+        $("#cols").append($("#axis_" + (x.replace(/\s/g, ""))));
+      }
+      _ref1 = this.rows;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        x = _ref1[_j];
+        $("#rows").append($("#axis_" + (x.replace(/\s/g, ""))));
+      }
+      _ref2 = this.vals;
+      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+        x = _ref2[_k];
+        $("#vals").append($("#axis_" + (x.replace(/\s/g, ""))));
+      }
+      if (this.aggregatorName != null) {
+        $("#aggregator").val(opts.aggregatorName);
+      }
+      if (this.rendererName != null) {
+        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).trigger('click');
+      }
+    },
+    bindEvents: function() {
+      var updateLabel;
+      updateLabel = function() {
+        $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
+        return $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
+      };
+      $(".pvtAxisContainer").sortable().on('sortstop', updateLabel);
+      return updateLabel();
+    }
+  };
+
+}).call(this);
+
+;(function() {
+  var $, decorators, pvt, t,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    __hasProp = {}.hasOwnProperty;
+
+  $ = jQuery;
+
+  pvt = window.PivotTable;
+
+  t = pvt.i18n.t;
+
+  decorators = pvt.decorators;
+
   decorators['jquery-ui'] = {
     pivotTable: function() {
       this.addClass('table table-bordered');
@@ -945,7 +1097,7 @@
       });
       return form;
     },
-    createColList: function(tblCols, hiddenAxes, axisValues) {
+    createColList: function(tblCols, hiddenAxes, axisValues, change_callback) {
       var c, colList, _i, _len;
       colList = $("<td colspan='2' id='unused' class='pvtAxisContainer pvtHorizList'>");
       for (_i = 0, _len = tblCols.length; _i < _len; _i++) {
@@ -1008,7 +1160,7 @@
                 return e.stopPropagation();
               });
               return $(document).one("click", function() {
-                refresh();
+                change_callback();
                 return valueList.toggle();
               });
             });
@@ -1050,7 +1202,7 @@
         $("#aggregator").val(opts.aggregatorName);
       }
       if (this.rendererName != null) {
-        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).attr('checked', true);
+        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).attr('checked', true).trigger('change');
       }
     }
   };
@@ -1300,7 +1452,7 @@
 
   i18n = pvt.i18n;
 
-  i18n["en"] = i18n["en-US"] = {
+  i18n["en"] = {
     "values for axis": function(args) {
       return "" + args[0] + " values for " + args[1];
     },
@@ -1325,7 +1477,8 @@
     "None": "无",
     "Select None": "清除选择",
     "Select All": "选择全部",
-    "Effects:": "效果:",
+    "Effects:": "特效:",
+    "Fields:": "字段:",
     "(too many to list)": "(列表太长)",
     "values for axis": function(args) {
       return "共 " + args[0] + " 类 " + args[1];

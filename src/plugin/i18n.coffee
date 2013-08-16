@@ -2,7 +2,7 @@ $ = jQuery
 pvt = window.PivotTable
 
 i18n = pvt.i18n
-i18n["en"] = i18n["en-US"] =
+i18n["en"] =
     "values for axis": (args) -> "#{args[0]} values for #{args[1]}"
     "aggregator.count": "count"
     "aggregator.countUnique": "countUnique"  
@@ -24,7 +24,8 @@ i18n["zh"] = i18n["zh-CN"] =
     "None":         "无"
     "Select None":  "清除选择"
     "Select All":   "选择全部"
-    "Effects:":     "效果:"
+    "Effects:":     "特效:"
+    "Fields:":      "字段:"
     "(too many to list)":       "(列表太长)"
     "values for axis":          (args) -> "共 #{args[0]} 类 #{args[1]}" 
     "aggregator.count":         "计数"

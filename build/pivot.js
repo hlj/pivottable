@@ -840,7 +840,7 @@
       rendererNames.unshift("None");
       rendererSelector = decorators.decorate(uiTable, 'createRendererSelector', rendererNames, refresh);
     }
-    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues);
+    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues, refresh);
     tr1 = $("<tr>");
     aggregator = decorators.decorate(tr1, 'createAggregatorMenu', opts.aggregators, refresh);
     tr1.append($("<td id='vals' class='pvtAxisContainer pvtHorizList'>").css("text-align", "center").append(aggregator).append($("<br>")));
@@ -856,8 +856,10 @@
     refresh();
     $(".pvtAxisContainer").sortable({
       connectWith: ".pvtAxisContainer",
-      items: 'li'
+      items: '.data-label',
+      handle: '.handle'
     }).bind("sortstop", refresh);
+    decorators.decorate(uiTable, 'bindEvents');
     return this;
   };
 

@@ -494,7 +494,7 @@ $.fn.pivotUI = (input, opts) ->
         rendererSelector = decorators.decorate(uiTable, 'createRendererSelector', rendererNames, refresh)
    
     #axis list, including the double-click menu
-    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues)
+    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues, refresh)
 
     tr1 = $("<tr>")
     #aggregator menu and value area
@@ -527,9 +527,10 @@ $.fn.pivotUI = (input, opts) ->
 
     #finally we attach the event handlers
     $(".pvtAxisContainer")
-         .sortable({connectWith:".pvtAxisContainer", items: 'li'})
+         .sortable({connectWith:".pvtAxisContainer", items: '.data-label', handle: '.handle'})
          .bind "sortstop", refresh
 
+    decorators.decorate(uiTable, 'bindEvents')
     return this
 
 window.PivotTable = $.extend $.pivotUtilities, {deriveAttributes, buildPivotData, buildPivotTable, forEachRow, PivotData}

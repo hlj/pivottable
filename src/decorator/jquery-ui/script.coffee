@@ -29,7 +29,7 @@ decorators['jquery-ui'] =
              change_callback()
         return form
     
-    createColList: (tblCols, hiddenAxes, axisValues) ->
+    createColList: (tblCols, hiddenAxes, axisValues, change_callback) ->
         colList = $("<td colspan='2' id='unused' class='pvtAxisContainer pvtHorizList'>")
 
         for c in tblCols when c not in hiddenAxes
@@ -70,7 +70,7 @@ decorators['jquery-ui'] =
                     valueList.css(left: e.pageX, top: e.pageY).toggle()
                     valueList.bind "click", (e) -> e.stopPropagation()
                     $(document).one "click", ->
-                        refresh()
+                        change_callback()
                         valueList.toggle()
                 colList.append $("<li class='label label-info' id='axis_#{c.replace(/\s/g, "")}'>").append(colLabel).append(valueList)
         this.append $("<tr>").append colList
@@ -95,7 +95,7 @@ decorators['jquery-ui'] =
         if this.aggregatorName?
             $("#aggregator").val opts.aggregatorName
         if this.rendererName?
-            $("#renderers_#{this.rendererName.replace(/\s/g, "")}").attr('checked',true)
+            $("#renderers_#{this.rendererName.replace(/\s/g, "")}").attr('checked',true).trigger('change')
         
         
 

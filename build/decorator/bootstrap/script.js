@@ -11,47 +11,44 @@
 
   decorators = pvt.decorators;
 
-  decorators['jquery-ui'] = {
+  decorators['bootstrap'] = {
     pivotTable: function() {
       this.addClass('table table-bordered');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
-      var controls, form, radio, x, _i, _len;
+      var btn, container, controls, nav, x, _i, _len;
       controls = $("<td colspan='2' align='center'>");
-      form = $("<form>").addClass("form-inline");
-      controls.append(form);
-      form.append($("<strong>").text(t("Effects:")));
+      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Effects:")) + "</a>\n<ul class=\"nav\">\n<li>\n    <div class='btn-group' data-toggle='buttons-radio'></div>\n</li>\n</ul>\n</div>\n</div>");
+      controls.append(nav);
+      container = nav.find(".btn-group");
       for (_i = 0, _len = rendererNames.length; _i < _len; _i++) {
         x = rendererNames[_i];
-        radio = $("<input type='radio' name='renderers' id='renderers_" + (x.replace(/\s/g, "")) + "'>").css({
-          "margin-left": "15px",
-          "margin-right": "5px"
-        }).val(x);
-        if (x === "None") {
-          radio.attr("checked", "checked");
-        }
-        form.append(radio).append($("<label class='checkbox inline' for='renderers_" + (x.replace(/\s/g, "")) + "'>").text(t(x)));
+        btn = $("<button  type='button' class='btn' id='renderers_" + (x.replace(/\s/g, "")) + "'>" + (t(x)) + "</button>").data('val', x);
+        container.append(btn);
       }
       this.append($("<tr>").append(controls));
-      $('input[name=renderers]', form).bind("change", function() {
-        form.data('selected', $(this).val());
+      $('button', container).bind("click", function() {
+        container.data('selected', $(this).data('val'));
         return change_callback();
       });
-      return form;
+      return container;
     },
     createColList: function(tblCols, hiddenAxes, axisValues, change_callback) {
-      var c, colList, _i, _len;
-      colList = $("<td colspan='2' id='unused' class='pvtAxisContainer pvtHorizList'>");
+      var c, colList, container, nav, _i, _len;
+      colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>");
+      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Fields:")) + "</a>\n</div>\n</div>");
+      colList.append(nav);
+      container = nav.find(".navbar-inner");
       for (_i = 0, _len = tblCols.length; _i < _len; _i++) {
         c = tblCols[_i];
         if (__indexOf.call(hiddenAxes, c) < 0) {
           (function(c) {
-            var btns, colLabel, filterItem, k, keys, numKeys, v, valueList, _j, _len1, _ref;
+            var btn, filterItem, k, keys, li, numKeys, v, valueList, _j, _len1, _ref;
             keys = (function() {
               var _ref, _results;
               _ref = axisValues[c];
@@ -64,30 +61,20 @@
               return _results;
             })();
             numKeys = keys.length;
-            colLabel = $("<nobr class='data-label'>").data('name', c).text(c);
-            valueList = $("<div>").css({
-              "z-index": 100,
-              "width": "280px",
-              "height": "350px",
-              "overflow": "scroll",
-              "border": "1px solid gray",
-              "background": "white",
-              "display": "none",
-              "position": "absolute",
-              "padding": "20px"
-            });
-            valueList.append($("<strong>").text(t("values for axis", numKeys, c)));
+            btn = $("    \n <div class='btn-group data-label' id='axis_" + (c.replace(/\s/g, "")) + "'>\n     <span class='btn handle'>" + c + "</span>\n     <button class=\"btn dropdown-toggle\" data-toggle=\"dropdown\">\n         <span class=\"icon-filter\"></span>\n     </button>\n </div>\n").data('name', c);
+            valueList = $("<ul class='dropdown-menu'>");
+            valueList.append($("<li>").text(t("values for axis", numKeys, c)));
             if (numKeys > 20) {
-              valueList.append($("<p>").text(t("(too many to list)")));
+              valueList.append($("<li>").text(t("(too many to list)")));
             } else {
-              btns = $("<p>");
-              btns.append($("<button>").text(t("Select All")).bind("click", function() {
+              li = $('<li>');
+              li.append($("<button class='btn btn-min'>").text(t("Select All")).bind("click", function() {
                 return valueList.find("input").attr("checked", true);
               }));
-              btns.append($("<button>").text(t("Select None")).bind("click", function() {
+              li.append($("<button class='btn btn-min'>").text(t("Select None")).bind("click", function() {
                 return valueList.find("input").attr("checked", false);
               }));
-              valueList.append(btns);
+              valueList.append(li);
               _ref = keys.sort();
               for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                 k = _ref[_j];
@@ -95,28 +82,24 @@
                 filterItem = $("<label>");
                 filterItem.append($("<input type='checkbox' class='pvtFilter'>").attr("checked", true).data("filter", [c, k]));
                 filterItem.append($("<span>").text("" + k + " (" + v + ")"));
-                valueList.append($("<p>").append(filterItem));
+                valueList.append($("<li>").append(filterItem));
               }
             }
-            colLabel.bind("dblclick", function(e) {
-              valueList.css({
-                left: e.pageX,
-                top: e.pageY
-              }).toggle();
-              valueList.bind("click", function(e) {
-                return e.stopPropagation();
-              });
-              return $(document).one("click", function() {
-                change_callback();
-                return valueList.toggle();
+            $('li', valueList).click(function(e) {
+              return event.stopPropagation();
+            });
+            btn.find('.dropdown-toggle').on('click.filter', function() {
+              return $(document).one('click.filter', function() {
+                console.log('click');
+                return change_callback();
               });
             });
-            return colList.append($("<li class='label label-info' id='axis_" + (c.replace(/\s/g, "")) + "'>").append(colLabel).append(valueList));
+            return container.append(btn.append(valueList));
           })(c);
         }
       }
       this.append($("<tr>").append(colList));
-      return colList;
+      return container;
     },
     createAggregatorMenu: function(aggregators, change_callback) {
       var aggregator, x;
@@ -149,8 +132,17 @@
         $("#aggregator").val(opts.aggregatorName);
       }
       if (this.rendererName != null) {
-        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).attr('checked', true).trigger('change');
+        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).trigger('click');
       }
+    },
+    bindEvents: function() {
+      var updateLabel;
+      updateLabel = function() {
+        $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
+        return $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
+      };
+      $(".pvtAxisContainer").sortable().on('sortstop', updateLabel);
+      return updateLabel();
     }
   };
 
