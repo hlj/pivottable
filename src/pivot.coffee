@@ -129,9 +129,9 @@ t = i18n.t
 # define decorators
 decorators =
     style: 'jquery-ui'
-    decorate: (element, target)->
-        decorators.default[target](element)
-        decorators[decorators.style][target](element)
+    decorate: (element, target, datas...) ->
+        r = decorators.default[target]?.apply(element, datas)
+        return decorators[decorators.style]?[target]?.apply(r || element, datas)
         
 # plugins
 plugins = {}
@@ -439,6 +439,36 @@ $.fn.pivotUI = (input, opts) ->
         cols: [], rows: [], vals: []
     opts = $.extend defaults, opts
     $.pivotUtilities.decorators.style = opts.decoratorStyle
+    
+    #set up for refreshing
+    refresh = ->
+        subopts = {derivedAttributes: opts.derivedAttributes, decoratorStyle: opts.decoratorStyle, plugins: opts.plugins}
+        subopts.cols = []
+        subopts.rows = []
+        vals = []
+        $("#rows .data-label").each -> subopts.rows.push $(this).data('name')
+        $("#cols .data-label").each -> subopts.cols.push $(this).data('name')
+        $("#vals .data-lable").each -> vals.push $(this).data('name')
+
+        subopts.aggregator = opts.aggregators[aggregator.val()](vals)
+
+        #construct filter here
+        exclusions = []
+        $('input.pvtFilter').not(':checked').each ->
+            exclusions.push $(this).data("filter")
+
+        subopts.filter = (row) ->
+            for [k,v] in exclusions
+                return false if row[k] == v
+            return true
+
+        if rendererNames.length != 0
+            renderer = rendererSelector.data('selected')
+            if renderer != "None"
+                subopts.renderer = opts.renderers[renderer]
+
+        pivotTable.pivot(input,subopts)
+    
 
     #cache the input in some useful form
     input = convertToArray(input)
@@ -458,97 +488,29 @@ $.fn.pivotUI = (input, opts) ->
     #start building the output
     uiTable = $("<table class='pvt-ui-table' cellpadding='5'>")
     #renderers controls, if desired
-
     rendererNames = (x for own x, y of opts.renderers)
     if rendererNames.length != 0
         rendererNames.unshift "None"
-        controls = $("<td colspan='2' align='center'>")
-        form = $("<form>").addClass("form-inline")
-        controls.append form
-
-        form.append $("<strong>").text(t "Effects:")
-        for x in rendererNames
-            radio = $("<input type='radio' name='renderers' id='renderers_#{x.replace(/\s/g, "")}'>")
-              .css("margin-left":"15px", "margin-right": "5px").val(x)
-            radio.attr("checked", "checked") if x=="None"
-            form.append(radio).append $("<label class='checkbox inline' for='renderers_#{x.replace(/\s/g, "")}'>").text(t x)
-
-        uiTable.append $("<tr>").append controls
-
+        rendererSelector = decorators.decorate(uiTable, 'createRendererSelector', rendererNames, refresh)
+   
     #axis list, including the double-click menu
-
-    colList = $("<td colspan='2' id='unused' class='pvtAxisContainer pvtHorizList'>")
-
-    for c in tblCols when c not in opts.hiddenAxes
-        do (c) ->
-            #numKeys = Object.keys(axisValues[c]).length
-            keys = (k for own k,v of axisValues[c])
-            numKeys = keys.length
-            colLabel = $("<nobr>").text(c)
-            valueList = $("<div>")
-                .css
-                    "z-index": 100
-                    "width": "280px"
-                    "height": "350px"
-                    "overflow": "scroll"
-                    "border": "1px solid gray"
-                    "background": "white"
-                    "display": "none"
-                    "position": "absolute"
-                    "padding": "20px"
-            valueList.append $("<strong>").text t("values for axis",numKeys, c)
-            if numKeys > 20
-                valueList.append $("<p>").text t "(too many to list)"
-            else
-                btns = $("<p>")
-                btns.append $("<button>").text(t "Select All").bind "click", ->
-                    valueList.find("input").attr "checked", true
-                btns.append $("<button>").text(t "Select None").bind "click", ->
-                    valueList.find("input").attr "checked", false
-                valueList.append btns
-                for k in keys.sort()
-                     v = axisValues[c][k]
-                     filterItem = $("<label>")
-                     filterItem.append $("<input type='checkbox' class='pvtFilter'>")
-                        .attr("checked", true).data("filter", [c,k])
-                     filterItem.append $("<span>").text "#{k} (#{v})"
-                     valueList.append $("<p>").append(filterItem)
-            colLabel.bind "dblclick", (e) ->
-                valueList.css(left: e.pageX, top: e.pageY).toggle()
-                valueList.bind "click", (e) -> e.stopPropagation()
-                $(document).one "click", ->
-                    refresh()
-                    valueList.toggle()
-            colList.append $("<li class='label label-info' id='axis_#{c.replace(/\s/g, "")}'>").append(colLabel).append(valueList)
-
-
-    uiTable.append $("<tr>").append colList
+    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues)
 
     tr1 = $("<tr>")
-
     #aggregator menu and value area
-
-    aggregator = $("<select id='aggregator'>")
-        .css("margin-bottom", "5px")
-        .bind "change", -> refresh() #capture reference
-    for own x of opts.aggregators
-        aggregator.append $("<option>").val(x).text(t "aggregator.#{x}")
-
+    aggregator = decorators.decorate(tr1, 'createAggregatorMenu', opts.aggregators, refresh)
     tr1.append $("<td id='vals' class='pvtAxisContainer pvtHorizList'>")
       .css("text-align", "center")
       .append(aggregator).append($("<br>"))
-
+    
     #column axes
     tr1.append $("<td id='cols' class='pvtAxisContainer pvtHorizList'>")
-
     uiTable.append tr1
 
     tr2 = $("<tr>")
-
     #row axes
     tr2.append $("<td valign='top' id='rows' class='pvtAxisContainer'>")
-
-    #the actual pivot table container
+    #the actual pivot table container   
     pivotTable = $("<td valign='top'>")
     tr2.append pivotTable
 
@@ -556,54 +518,14 @@ $.fn.pivotUI = (input, opts) ->
 
     #render the UI in its default state
     @html uiTable
-
+    
     #set up the UI initial state as requested by moving elements around
-
-    for x in opts.cols
-        $("#cols").append $("#axis_#{x.replace(/\s/g, "")}")
-    for x in opts.rows
-        $("#rows").append $("#axis_#{x.replace(/\s/g, "")}")
-    for x in opts.vals
-        $("#vals").append $("#axis_#{x.replace(/\s/g, "")}")
-    if opts.aggregatorName?
-        $("#aggregator").val opts.aggregatorName
-    if opts.rendererName?
-        $("#renderers_#{opts.rendererName.replace(/\s/g, "")}").attr('checked',true)
-
-    #set up for refreshing
-    refresh = ->
-        subopts = {derivedAttributes: opts.derivedAttributes, decoratorStyle: opts.decoratorStyle, plugins: opts.plugins}
-        subopts.cols = []
-        subopts.rows = []
-        vals = []
-        $("#rows li nobr").each -> subopts.rows.push $(this).text()
-        $("#cols li nobr").each -> subopts.cols.push $(this).text()
-        $("#vals li nobr").each -> vals.push $(this).text()
-
-        subopts.aggregator = opts.aggregators[aggregator.val()](vals)
-
-        #construct filter here
-        exclusions = []
-        $('input.pvtFilter').not(':checked').each ->
-            exclusions.push $(this).data("filter")
-
-        subopts.filter = (row) ->
-            for [k,v] in exclusions
-                return false if row[k] == v
-            return true
-
-        if rendererNames.length != 0
-            renderer = $('input[name=renderers]:checked').val()
-            if renderer != "None"
-                subopts.renderer = opts.renderers[renderer]
-
-        pivotTable.pivot(input,subopts)
-
+    decorators.decorate(opts, 'initialUI')
+    
     #the very first refresh will actually display the table
     refresh()
 
     #finally we attach the event handlers
-    $('input[name=renderers]').bind "change", refresh
     $(".pvtAxisContainer")
          .sortable({connectWith:".pvtAxisContainer", items: 'li'})
          .bind "sortstop", refresh

@@ -281,9 +281,11 @@
 
   decorators = {
     style: 'jquery-ui',
-    decorate: function(element, target) {
-      decorators["default"][target](element);
-      return decorators[decorators.style][target](element);
+    decorate: function() {
+      var datas, element, r, target, _ref, _ref1, _ref2;
+      element = arguments[0], target = arguments[1], datas = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
+      r = (_ref = decorators["default"][target]) != null ? _ref.apply(element, datas) : void 0;
+      return (_ref1 = decorators[decorators.style]) != null ? (_ref2 = _ref1[target]) != null ? _ref2.apply(r || element, datas) : void 0 : void 0;
     }
   };
 
@@ -727,7 +729,7 @@
 
 
   $.fn.pivotUI = function(input, opts) {
-    var aggregator, axisValues, c, colList, controls, defaults, form, k, pivotTable, radio, refresh, rendererNames, tblCols, tr1, tr2, uiTable, x, y, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4;
+    var aggregator, axisValues, c, defaults, k, pivotTable, refresh, rendererNames, rendererSelector, tblCols, tr1, tr2, uiTable, x, y, _i, _len, _ref;
     defaults = {
       derivedAttributes: {},
       aggregators: aggregators,
@@ -741,6 +743,48 @@
     };
     opts = $.extend(defaults, opts);
     $.pivotUtilities.decorators.style = opts.decoratorStyle;
+    refresh = function() {
+      var exclusions, renderer, subopts, vals;
+      subopts = {
+        derivedAttributes: opts.derivedAttributes,
+        decoratorStyle: opts.decoratorStyle,
+        plugins: opts.plugins
+      };
+      subopts.cols = [];
+      subopts.rows = [];
+      vals = [];
+      $("#rows .data-label").each(function() {
+        return subopts.rows.push($(this).data('name'));
+      });
+      $("#cols .data-label").each(function() {
+        return subopts.cols.push($(this).data('name'));
+      });
+      $("#vals .data-lable").each(function() {
+        return vals.push($(this).data('name'));
+      });
+      subopts.aggregator = opts.aggregators[aggregator.val()](vals);
+      exclusions = [];
+      $('input.pvtFilter').not(':checked').each(function() {
+        return exclusions.push($(this).data("filter"));
+      });
+      subopts.filter = function(row) {
+        var k, v, _i, _len, _ref;
+        for (_i = 0, _len = exclusions.length; _i < _len; _i++) {
+          _ref = exclusions[_i], k = _ref[0], v = _ref[1];
+          if (row[k] === v) {
+            return false;
+          }
+        }
+        return true;
+      };
+      if (rendererNames.length !== 0) {
+        renderer = rendererSelector.data('selected');
+        if (renderer !== "None") {
+          subopts.renderer = opts.renderers[renderer];
+        }
+      }
+      return pivotTable.pivot(input, subopts);
+    };
     input = convertToArray(input);
     tblCols = (function() {
       var _ref, _results;
@@ -794,102 +838,11 @@
     })();
     if (rendererNames.length !== 0) {
       rendererNames.unshift("None");
-      controls = $("<td colspan='2' align='center'>");
-      form = $("<form>").addClass("form-inline");
-      controls.append(form);
-      form.append($("<strong>").text(t("Effects:")));
-      for (_j = 0, _len1 = rendererNames.length; _j < _len1; _j++) {
-        x = rendererNames[_j];
-        radio = $("<input type='radio' name='renderers' id='renderers_" + (x.replace(/\s/g, "")) + "'>").css({
-          "margin-left": "15px",
-          "margin-right": "5px"
-        }).val(x);
-        if (x === "None") {
-          radio.attr("checked", "checked");
-        }
-        form.append(radio).append($("<label class='checkbox inline' for='renderers_" + (x.replace(/\s/g, "")) + "'>").text(t(x)));
-      }
-      uiTable.append($("<tr>").append(controls));
+      rendererSelector = decorators.decorate(uiTable, 'createRendererSelector', rendererNames, refresh);
     }
-    colList = $("<td colspan='2' id='unused' class='pvtAxisContainer pvtHorizList'>");
-    for (_k = 0, _len2 = tblCols.length; _k < _len2; _k++) {
-      c = tblCols[_k];
-      if (__indexOf.call(opts.hiddenAxes, c) < 0) {
-        (function(c) {
-          var btns, colLabel, filterItem, keys, numKeys, v, valueList, _l, _len3, _ref1;
-          keys = (function() {
-            var _ref1, _results;
-            _ref1 = axisValues[c];
-            _results = [];
-            for (k in _ref1) {
-              if (!__hasProp.call(_ref1, k)) continue;
-              v = _ref1[k];
-              _results.push(k);
-            }
-            return _results;
-          })();
-          numKeys = keys.length;
-          colLabel = $("<nobr>").text(c);
-          valueList = $("<div>").css({
-            "z-index": 100,
-            "width": "280px",
-            "height": "350px",
-            "overflow": "scroll",
-            "border": "1px solid gray",
-            "background": "white",
-            "display": "none",
-            "position": "absolute",
-            "padding": "20px"
-          });
-          valueList.append($("<strong>").text(t("values for axis", numKeys, c)));
-          if (numKeys > 20) {
-            valueList.append($("<p>").text(t("(too many to list)")));
-          } else {
-            btns = $("<p>");
-            btns.append($("<button>").text(t("Select All")).bind("click", function() {
-              return valueList.find("input").attr("checked", true);
-            }));
-            btns.append($("<button>").text(t("Select None")).bind("click", function() {
-              return valueList.find("input").attr("checked", false);
-            }));
-            valueList.append(btns);
-            _ref1 = keys.sort();
-            for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
-              k = _ref1[_l];
-              v = axisValues[c][k];
-              filterItem = $("<label>");
-              filterItem.append($("<input type='checkbox' class='pvtFilter'>").attr("checked", true).data("filter", [c, k]));
-              filterItem.append($("<span>").text("" + k + " (" + v + ")"));
-              valueList.append($("<p>").append(filterItem));
-            }
-          }
-          colLabel.bind("dblclick", function(e) {
-            valueList.css({
-              left: e.pageX,
-              top: e.pageY
-            }).toggle();
-            valueList.bind("click", function(e) {
-              return e.stopPropagation();
-            });
-            return $(document).one("click", function() {
-              refresh();
-              return valueList.toggle();
-            });
-          });
-          return colList.append($("<li class='label label-info' id='axis_" + (c.replace(/\s/g, "")) + "'>").append(colLabel).append(valueList));
-        })(c);
-      }
-    }
-    uiTable.append($("<tr>").append(colList));
+    decorators.decorate(uiTable, 'createColList', tblCols, opts.hiddenAxes, axisValues);
     tr1 = $("<tr>");
-    aggregator = $("<select id='aggregator'>").css("margin-bottom", "5px").bind("change", function() {
-      return refresh();
-    });
-    _ref1 = opts.aggregators;
-    for (x in _ref1) {
-      if (!__hasProp.call(_ref1, x)) continue;
-      aggregator.append($("<option>").val(x).text(t("aggregator." + x)));
-    }
+    aggregator = decorators.decorate(tr1, 'createAggregatorMenu', opts.aggregators, refresh);
     tr1.append($("<td id='vals' class='pvtAxisContainer pvtHorizList'>").css("text-align", "center").append(aggregator).append($("<br>")));
     tr1.append($("<td id='cols' class='pvtAxisContainer pvtHorizList'>"));
     uiTable.append(tr1);
@@ -899,71 +852,8 @@
     tr2.append(pivotTable);
     uiTable.append(tr2);
     this.html(uiTable);
-    _ref2 = opts.cols;
-    for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
-      x = _ref2[_l];
-      $("#cols").append($("#axis_" + (x.replace(/\s/g, ""))));
-    }
-    _ref3 = opts.rows;
-    for (_m = 0, _len4 = _ref3.length; _m < _len4; _m++) {
-      x = _ref3[_m];
-      $("#rows").append($("#axis_" + (x.replace(/\s/g, ""))));
-    }
-    _ref4 = opts.vals;
-    for (_n = 0, _len5 = _ref4.length; _n < _len5; _n++) {
-      x = _ref4[_n];
-      $("#vals").append($("#axis_" + (x.replace(/\s/g, ""))));
-    }
-    if (opts.aggregatorName != null) {
-      $("#aggregator").val(opts.aggregatorName);
-    }
-    if (opts.rendererName != null) {
-      $("#renderers_" + (opts.rendererName.replace(/\s/g, ""))).attr('checked', true);
-    }
-    refresh = function() {
-      var exclusions, renderer, subopts, vals;
-      subopts = {
-        derivedAttributes: opts.derivedAttributes,
-        decoratorStyle: opts.decoratorStyle,
-        plugins: opts.plugins
-      };
-      subopts.cols = [];
-      subopts.rows = [];
-      vals = [];
-      $("#rows li nobr").each(function() {
-        return subopts.rows.push($(this).text());
-      });
-      $("#cols li nobr").each(function() {
-        return subopts.cols.push($(this).text());
-      });
-      $("#vals li nobr").each(function() {
-        return vals.push($(this).text());
-      });
-      subopts.aggregator = opts.aggregators[aggregator.val()](vals);
-      exclusions = [];
-      $('input.pvtFilter').not(':checked').each(function() {
-        return exclusions.push($(this).data("filter"));
-      });
-      subopts.filter = function(row) {
-        var v, _len6, _o, _ref5;
-        for (_o = 0, _len6 = exclusions.length; _o < _len6; _o++) {
-          _ref5 = exclusions[_o], k = _ref5[0], v = _ref5[1];
-          if (row[k] === v) {
-            return false;
-          }
-        }
-        return true;
-      };
-      if (rendererNames.length !== 0) {
-        renderer = $('input[name=renderers]:checked').val();
-        if (renderer !== "None") {
-          subopts.renderer = opts.renderers[renderer];
-        }
-      }
-      return pivotTable.pivot(input, subopts);
-    };
+    decorators.decorate(opts, 'initialUI');
     refresh();
-    $('input[name=renderers]').bind("change", refresh);
     $(".pvtAxisContainer").sortable({
       connectWith: ".pvtAxisContainer",
       items: 'li'

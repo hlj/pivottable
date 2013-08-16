@@ -8,8 +8,8 @@
   decorators = pvt.decorators;
 
   decorators['default'] = {
-    pivotTable: function(ele) {
-      return $('.pvtVal, .pvtTotal', ele).hover(function() {
+    pivotTable: function() {
+      $('.pvtVal, .pvtTotal', this).hover(function() {
         var sels;
         sels = "." + ($.trim($(this)[0].className.replace('pvtVal', '')).split(' ').join(',.'));
         $('.pvtTable').find(sels).addClass('pvtVal-cross');
@@ -20,6 +20,7 @@
         $('.pvtTable').find(sels).removeClass('pvtVal-cross');
         return $(this).removeClass('pvtVal-em');
       });
+      return this;
     }
   };
 
