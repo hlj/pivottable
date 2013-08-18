@@ -13,11 +13,11 @@
 
   decorators['jquery-ui'] = {
     pivotTable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-table-ju');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-ui-table-ju');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
@@ -64,7 +64,7 @@
               return _results;
             })();
             numKeys = keys.length;
-            colLabel = $("<nobr class='data-label'>").data('name', c).text(c);
+            colLabel = $("<nobr class='handle'>").text(c);
             valueList = $("<div>").css({
               "z-index": 100,
               "width": "280px",
@@ -111,7 +111,7 @@
                 return valueList.toggle();
               });
             });
-            return colList.append($("<li class='label label-info' id='axis_" + (c.replace(/\s/g, "")) + "'>").append(colLabel).append(valueList));
+            return colList.append($("<li class='data-label' id='axis_" + (c.replace(/\s/g, "")) + "'>").data('name', c).append(colLabel).append(valueList));
           })(c);
         }
       }
@@ -151,6 +151,25 @@
       if (this.rendererName != null) {
         return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).attr('checked', true).trigger('change');
       }
+    },
+    afterCreated: function() {
+      var classes, k, pvtTable, uiTable, v, _results;
+      pvtTable = $('.pvtTable');
+      uiTable = this;
+      classes = {
+        ".pvtColLabel": "pvt-col-label-ju",
+        ".pvtTotalLabel": "pvt-total-label-ju",
+        ".pvtTotal": "pvt-total-ju",
+        ".pvtGrandTotal": "pvt-grand-total-ju",
+        ".pvtAxisContainer": "pvt-axis-container-ju",
+        ".pvtHorizList": "pvt-horiz-list-ju"
+      };
+      _results = [];
+      for (k in classes) {
+        v = classes[k];
+        _results.push(uiTable.find(k).addClass(v));
+      }
+      return _results;
     }
   };
 

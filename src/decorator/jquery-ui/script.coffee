@@ -5,11 +5,11 @@ t = pvt.i18n.t
 decorators = pvt.decorators
 decorators['jquery-ui'] =
     pivotTable:  ->
-        this.addClass('table table-bordered')
+        this.addClass('table table-bordered pvt-table-ju')
         return this
         
     pivotUITable:  ->
-        this.addClass('table table-bordered')
+        this.addClass('table table-bordered pvt-ui-table-ju')
         return this
         
     createRendererSelector: (rendererNames, change_callback) ->
@@ -37,7 +37,7 @@ decorators['jquery-ui'] =
                 #numKeys = Object.keys(axisValues[c]).length
                 keys = (k for own k,v of axisValues[c])
                 numKeys = keys.length
-                colLabel = $("<nobr class='data-label'>").data('name',c).text(c)
+                colLabel = $("<nobr class='handle'>").text(c)
                 valueList = $("<div>")
                     .css
                         "z-index": 100
@@ -72,7 +72,8 @@ decorators['jquery-ui'] =
                     $(document).one "click", ->
                         change_callback()
                         valueList.toggle()
-                colList.append $("<li class='label label-info' id='axis_#{c.replace(/\s/g, "")}'>").append(colLabel).append(valueList)
+                colList.append $("<li class='data-label' id='axis_#{c.replace(/\s/g, "")}'>").data('name',c)
+                    .append(colLabel).append(valueList)
         this.append $("<tr>").append colList
         return colList
     
@@ -96,6 +97,20 @@ decorators['jquery-ui'] =
             $("#aggregator").val opts.aggregatorName
         if this.rendererName?
             $("#renderers_#{this.rendererName.replace(/\s/g, "")}").attr('checked',true).trigger('change')
+        
+    afterCreated: ->
+        pvtTable = $('.pvtTable')
+        uiTable = this
+        classes =
+            ".pvtColLabel": "pvt-col-label-ju"
+            ".pvtTotalLabel": "pvt-total-label-ju"
+            ".pvtTotal": "pvt-total-ju"
+            ".pvtGrandTotal": "pvt-grand-total-ju"
+            ".pvtAxisContainer": "pvt-axis-container-ju"
+            ".pvtHorizList": "pvt-horiz-list-ju"
+        for k, v of classes
+            uiTable.find(k).addClass(v)    
+        
         
         
 

@@ -530,7 +530,7 @@ $.fn.pivotUI = (input, opts) ->
          .sortable({connectWith:".pvtAxisContainer", items: '.data-label', handle: '.handle'})
          .bind "sortstop", refresh
 
-    decorators.decorate(uiTable, 'bindEvents')
+    decorators.decorate(uiTable, 'afterCreated')
     return this
 
 window.PivotTable = $.extend $.pivotUtilities, {deriveAttributes, buildPivotData, buildPivotTable, forEachRow, PivotData}

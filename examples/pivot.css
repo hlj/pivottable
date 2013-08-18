@@ -1,11 +1,25 @@
-table.pvtTable{font-family:arial;font-size:8pt;text-align:left;border-collapse:collapse}
-table.pvtTable tr th,table.pvtTable tr th{background-color:#e6EEEE;border:1px solid #CDCDCD;font-size:8pt;padding:5px}
-table.pvtTable .pvtColLabel{text-align:center}
-table.pvtTable .pvtTotalLabel{text-align:right}
-table.pvtTable tr td{color:#3D3D3D;padding:5px;background-color:#FFF;border:1px solid #CDCDCD;vertical-align:top;text-align:right}
-.pvtTotal,.pvtGrandTotal{font-weight:bold}
-.pvtAxisContainer{border:1px solid gray;background:#EEE;padding:5px;min-width:20px;min-height:20px}
-.pvtAxisContainer li{margin:5px;padding:5px;list-style-type:none;cursor:move}
-.pvtHorizList li{display:inline}
-table.pvtTable tr td.pvtVal-em{font-weight:bold}
-table.pvtTable tr th.pvtVal-cross{background:skyblue}
+
+
+table.pvt-table-bt{font-family:arial;font-size:8pt;text-align:left;border-collapse:collapse}
+table.pvt-table-bt tr th,table.pvt-table-bt tr th{background-color:#e6EEEE;border:1px solid #CDCDCD;font-size:8pt;padding:5px}
+table.pvt-table-bt .pvt-col-label-bt{text-align:center}
+table.pvt-table-bt .pvt-total-label-bt{text-align:right}
+table.pvt-table-bt tr td{color:#3D3D3D;padding:5px;background-color:#FFF;border:1px solid #CDCDCD;vertical-align:top;text-align:right}
+.pvt-total-bt,.pvt-grand-total-bt{font-weight:bold}
+.pvt-axis-container-bt{border:1px solid gray;background:#EEE;padding:5px;min-width:20px;min-height:20px}
+.pvt-axis-container-bt li{margin:5px;padding:5px;list-style-type:none;cursor:move}
+.pvt-horiz-list-bt li{display:inline}
+table.pvt-table-bt tr td.pvtVal-em{font-weight:bold}
+table.pvt-table-bt tr th.pvtVal-cross{background:skyblue}
+
+table.pvt-table-ju{font-family:arial;font-size:8pt;text-align:left;border-collapse:collapse}
+table.pvt-table-ju tr th,table.pvt-table-ju tr th{background-color:#e6EEEE;border:1px solid #CDCDCD;font-size:8pt;padding:5px}
+table.pvt-table-ju .pvt-col-label-ju{text-align:center}
+table.pvt-table-ju .pvt-total-label-ju{text-align:right}
+table.pvt-table-ju tr td{color:#3D3D3D;padding:5px;background-color:#FFF;border:1px solid #CDCDCD;vertical-align:top;text-align:right}
+.pvt-total-ju,.pvt-grand-total-ju{font-weight:bold}
+.pvt-axis-container-ju{border:1px solid gray;background:#EEE;padding:5px;min-width:20px;min-height:20px}
+.pvt-axis-container-ju li{margin:5px;padding:5px;list-style-type:none;cursor:move}
+.pvt-horiz-list-ju li{display:inline}
+table.pvt-table-ju tr td.pvtVal-em{font-weight:bold}
+table.pvt-table-ju tr th.pvtVal-cross{background:skyblue}

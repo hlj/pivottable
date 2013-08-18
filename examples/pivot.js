@@ -859,7 +859,7 @@
       items: '.data-label',
       handle: '.handle'
     }).bind("sortstop", refresh);
-    decorators.decorate(uiTable, 'bindEvents');
+    decorators.decorate(uiTable, 'afterCreated');
     return this;
   };
 
@@ -916,11 +916,11 @@
 
   decorators['bootstrap'] = {
     pivotTable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-table-bt');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table');
+      this.addClass('table pvt-ui-table-bt');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
@@ -1038,8 +1038,22 @@
         return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).trigger('click');
       }
     },
-    bindEvents: function() {
-      var updateLabel;
+    afterCreated: function() {
+      var classes, k, pvtTable, uiTable, updateLabel, v;
+      pvtTable = $('.pvtTable');
+      uiTable = this;
+      classes = {
+        ".pvtColLabel": "pvt-col-label-bt",
+        ".pvtTotalLabel": "pvt-total-label-bt",
+        ".pvtTotal": "pvt-total-bt",
+        ".pvtGrandTotal": "pvt-grand-total-bt",
+        ".pvtAxisContainer": "pvt-axis-container-bt",
+        ".pvtHorizList": "pvt-horiz-list-bt"
+      };
+      for (k in classes) {
+        v = classes[k];
+        uiTable.find(k).addClass(v);
+      }
       updateLabel = function() {
         $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
         return $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
@@ -1066,11 +1080,11 @@
 
   decorators['jquery-ui'] = {
     pivotTable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-table-ju');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-ui-table-ju');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
@@ -1117,7 +1131,7 @@
               return _results;
             })();
             numKeys = keys.length;
-            colLabel = $("<nobr class='data-label'>").data('name', c).text(c);
+            colLabel = $("<nobr class='handle'>").text(c);
             valueList = $("<div>").css({
               "z-index": 100,
               "width": "280px",
@@ -1164,7 +1178,7 @@
                 return valueList.toggle();
               });
             });
-            return colList.append($("<li class='label label-info' id='axis_" + (c.replace(/\s/g, "")) + "'>").append(colLabel).append(valueList));
+            return colList.append($("<li class='data-label' id='axis_" + (c.replace(/\s/g, "")) + "'>").data('name', c).append(colLabel).append(valueList));
           })(c);
         }
       }
@@ -1204,6 +1218,25 @@
       if (this.rendererName != null) {
         return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).attr('checked', true).trigger('change');
       }
+    },
+    afterCreated: function() {
+      var classes, k, pvtTable, uiTable, v, _results;
+      pvtTable = $('.pvtTable');
+      uiTable = this;
+      classes = {
+        ".pvtColLabel": "pvt-col-label-ju",
+        ".pvtTotalLabel": "pvt-total-label-ju",
+        ".pvtTotal": "pvt-total-ju",
+        ".pvtGrandTotal": "pvt-grand-total-ju",
+        ".pvtAxisContainer": "pvt-axis-container-ju",
+        ".pvtHorizList": "pvt-horiz-list-ju"
+      };
+      _results = [];
+      for (k in classes) {
+        v = classes[k];
+        _results.push(uiTable.find(k).addClass(v));
+      }
+      return _results;
     }
   };
 

@@ -13,11 +13,11 @@
 
   decorators['bootstrap'] = {
     pivotTable: function() {
-      this.addClass('table table-bordered');
+      this.addClass('table table-bordered pvt-table-bt');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table');
+      this.addClass('table pvt-ui-table-bt');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
@@ -135,8 +135,22 @@
         return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).trigger('click');
       }
     },
-    bindEvents: function() {
-      var updateLabel;
+    afterCreated: function() {
+      var classes, k, pvtTable, uiTable, updateLabel, v;
+      pvtTable = $('.pvtTable');
+      uiTable = this;
+      classes = {
+        ".pvtColLabel": "pvt-col-label-bt",
+        ".pvtTotalLabel": "pvt-total-label-bt",
+        ".pvtTotal": "pvt-total-bt",
+        ".pvtGrandTotal": "pvt-grand-total-bt",
+        ".pvtAxisContainer": "pvt-axis-container-bt",
+        ".pvtHorizList": "pvt-horiz-list-bt"
+      };
+      for (k in classes) {
+        v = classes[k];
+        uiTable.find(k).addClass(v);
+      }
       updateLabel = function() {
         $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
         return $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');

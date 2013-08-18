@@ -5,11 +5,11 @@ t = pvt.i18n.t
 decorators = pvt.decorators
 decorators['bootstrap'] =
     pivotTable:  ->
-        this.addClass('table table-bordered')
+        this.addClass('table table-bordered pvt-table-bt')
         return this
         
     pivotUITable:  ->
-        this.addClass('table')
+        this.addClass('table pvt-ui-table-bt')
         return this
         
     createRendererSelector: (rendererNames, change_callback) ->
@@ -97,13 +97,7 @@ decorators['bootstrap'] =
                         change_callback()
                 
                 container.append btn.append valueList
-                    
-                # colLabel.bind "dblclick", (e) ->
-  #                   valueList.css(left: e.pageX, top: e.pageY).toggle()
-  #                   valueList.bind "click", (e) -> e.stopPropagation()
-  #                   $(document).one "click", ->
-  #                       refresh()
-  #                       valueList.toggle()    
+                      
         this.append $("<tr>").append colList      
         return container
     
@@ -128,7 +122,19 @@ decorators['bootstrap'] =
         if this.rendererName?
             $("#renderers_#{this.rendererName.replace(/\s/g, "")}").trigger('click') 
             
-    bindEvents: ->
+    afterCreated: ->
+        pvtTable = $('.pvtTable')
+        uiTable = this
+        classes =
+            ".pvtColLabel": "pvt-col-label-bt"
+            ".pvtTotalLabel": "pvt-total-label-bt"
+            ".pvtTotal": "pvt-total-bt"
+            ".pvtGrandTotal": "pvt-grand-total-bt"
+            ".pvtAxisContainer": "pvt-axis-container-bt"
+            ".pvtHorizList": "pvt-horiz-list-bt"
+        for k, v of classes
+            uiTable.find(k).addClass(v)
+            
         updateLabel = ->
             $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white')
             $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white')

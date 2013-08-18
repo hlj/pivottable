@@ -859,7 +859,7 @@
       items: '.data-label',
       handle: '.handle'
     }).bind("sortstop", refresh);
-    decorators.decorate(uiTable, 'bindEvents');
+    decorators.decorate(uiTable, 'afterCreated');
     return this;
   };
 
