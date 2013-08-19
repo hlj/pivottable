@@ -13,11 +13,11 @@
 
   decorators['jquery-ui'] = {
     pivotTable: function() {
-      this.addClass('table table-bordered pvt-table-ju');
+      this.addClass('pvt-table-ju');
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table table-bordered pvt-ui-table-ju');
+      this.addClass('pvt-ui-table-ju');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {

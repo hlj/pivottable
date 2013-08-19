@@ -5,11 +5,11 @@ t = pvt.i18n.t
 decorators = pvt.decorators
 decorators['jquery-ui'] =
     pivotTable:  ->
-        this.addClass('table table-bordered pvt-table-ju')
+        this.addClass('pvt-table-ju')
         return this
         
     pivotUITable:  ->
-        this.addClass('table table-bordered pvt-ui-table-ju')
+        this.addClass('pvt-ui-table-ju')
         return this
         
     createRendererSelector: (rendererNames, change_callback) ->
