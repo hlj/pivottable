@@ -3,7 +3,7 @@ pvt = window.PivotTable
 
 i18n = pvt.i18n
 i18n["en"] =
-    "values for axis": (args) -> "#{args[0]} values for #{args[1]}"
+    "values for axis": (args) -> "#{args[0]} values for #{args[1]}"           
     "aggregator.count": "count"
     "aggregator.countUnique": "countUnique"  
     "aggregator.listUnique": "listUnique"  
@@ -13,6 +13,13 @@ i18n["en"] =
     "aggregator.sumOverSum": "sumOverSum"  
     "aggregator.ub80": "ub80"  
     "aggregator.lb80": "lb80"
+    "charts title": (args) -> 
+        unless args[0]?
+            args[1]
+        else unless args[1]?
+            args[0]
+        else
+            "#{args[0]} by #{args[1]}"
     
 i18n["zh"] = i18n["zh-CN"] =
     "Row Barchart": "行内柱状图"
@@ -37,3 +44,13 @@ i18n["zh"] = i18n["zh-CN"] =
     "aggregator.sumOverSum":    "累加并求比例"  
     "aggregator.ub80":          "累加并求比例2"  
     "aggregator.lb80":          "累加并求比例3"
+    "charts title": (args) -> 
+        unless args[0]?
+            args[1]
+        else unless args[1]?
+            args[0]
+        else
+            "#{args[1]} 之 #{args[0]}"
+    "Line chart": "折线图"
+    "Bar chart":  "柱状图"
+    "Area chart": "面积图"

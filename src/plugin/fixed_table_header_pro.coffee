@@ -79,7 +79,6 @@ $.fn.fixedTableHeaderPro = (method) ->
         destroy: ->
             wrapper = this.parents('.fthp-wrapper-main')
             if wrapper.size() > 0
-                console.log wrapper
                 wrapper.parent().append(this)
                 wrapper.remove()
                 

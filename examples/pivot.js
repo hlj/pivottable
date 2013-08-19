@@ -713,7 +713,7 @@
     opts = $.extend(defaults, opts);
     $.pivotUtilities.decorators.style = opts.decoratorStyle;
     pivotData = buildPivotData(input, opts.cols, opts.rows, opts.aggregator, opts.filter, opts.derivedAttributes);
-    this.html(pvtTable = opts.renderer(pivotData));
+    this.html(pvtTable = opts.renderer(pivotData, this));
     _ref = opts.plugins;
     _results = [];
     for (k in _ref) {
@@ -898,6 +898,173 @@
       });
       return this;
     }
+  };
+
+}).call(this);
+
+;(function() {
+  var $, pvt, renderers;
+
+  $ = jQuery;
+
+  pvt = window.PivotTable;
+
+  renderers = pvt.renderers;
+
+  $.extend(renderers, {
+    "Row Barchart": function(pvtData) {
+      return pvt.buildPivotTable(pvtData).barchart();
+    },
+    "Heatmap": function(pvtData) {
+      return pvt.buildPivotTable(pvtData).heatmap();
+    },
+    "Row Heatmap": function(pvtData) {
+      return pvt.buildPivotTable(pvtData).heatmap("rowheatmap");
+    },
+    "Col Heatmap": function(pvtData) {
+      return pvt.buildPivotTable(pvtData).heatmap("colheatmap");
+    }
+  });
+
+  /*
+  Heatmap post-processing
+  */
+
+
+  $.fn.heatmap = function(scope) {
+    var colorGen, heatmapper, i, j, numCols, numRows, _i, _j, _ref,
+      _this = this;
+    if (scope == null) {
+      scope = "heatmap";
+    }
+    _ref = this.data("dimensions"), numRows = _ref[0], numCols = _ref[1];
+    colorGen = function(color, min, max) {
+      var hexGen;
+      hexGen = (function() {
+        switch (color) {
+          case "red":
+            return function(hex) {
+              return "ff" + hex + hex;
+            };
+          case "green":
+            return function(hex) {
+              return "" + hex + "ff" + hex;
+            };
+          case "blue":
+            return function(hex) {
+              return "" + hex + hex + "ff";
+            };
+        }
+      })();
+      return function(x) {
+        var hex, intensity;
+        intensity = 255 - Math.round(255 * (x - min) / (max - min));
+        hex = intensity.toString(16).split(".")[0];
+        if (hex.length === 1) {
+          hex = 0 + hex;
+        }
+        return hexGen(hex);
+      };
+    };
+    heatmapper = function(scope, color) {
+      var colorFor, forEachCell, values;
+      forEachCell = function(f) {
+        return _this.find(scope).each(function() {
+          var x;
+          x = $(this).data("value");
+          if ((x != null) && isFinite(x)) {
+            return f(x, $(this));
+          }
+        });
+      };
+      values = [];
+      forEachCell(function(x) {
+        return values.push(x);
+      });
+      colorFor = colorGen(color, Math.min.apply(Math, values), Math.max.apply(Math, values));
+      return forEachCell(function(x, elem) {
+        return elem.css("background-color", "#" + colorFor(x));
+      });
+    };
+    switch (scope) {
+      case "heatmap":
+        heatmapper(".pvtVal", "red");
+        break;
+      case "rowheatmap":
+        for (i = _i = 0; 0 <= numRows ? _i < numRows : _i > numRows; i = 0 <= numRows ? ++_i : --_i) {
+          heatmapper(".pvtVal.row" + i, "red");
+        }
+        break;
+      case "colheatmap":
+        for (j = _j = 0; 0 <= numCols ? _j < numCols : _j > numCols; j = 0 <= numCols ? ++_j : --_j) {
+          heatmapper(".pvtVal.col" + j, "red");
+        }
+    }
+    heatmapper(".pvtTotal.rowTotal", "red");
+    heatmapper(".pvtTotal.colTotal", "red");
+    return this;
+  };
+
+  /*
+  Barchart post-processing
+  */
+
+
+  $.fn.barchart = function() {
+    var barcharter, i, numCols, numRows, _i, _ref,
+      _this = this;
+    _ref = this.data("dimensions"), numRows = _ref[0], numCols = _ref[1];
+    barcharter = function(scope) {
+      var forEachCell, max, scaler, values;
+      forEachCell = function(f) {
+        return _this.find(scope).each(function() {
+          var x;
+          x = $(this).data("value");
+          if ((x != null) && isFinite(x)) {
+            return f(x, $(this));
+          }
+        });
+      };
+      values = [];
+      forEachCell(function(x) {
+        return values.push(x);
+      });
+      max = Math.max.apply(Math, values);
+      scaler = function(x) {
+        return 100 * x / (1.4 * max);
+      };
+      return forEachCell(function(x, elem) {
+        var text, wrapper;
+        text = elem.text();
+        wrapper = $("<div>").css({
+          "position": "relative",
+          "height": "55px"
+        });
+        wrapper.append($("<div>").css({
+          "position": "absolute",
+          "bottom": 0,
+          "left": 0,
+          "right": 0,
+          "height": scaler(x) + "%",
+          "background-color": "gray"
+        }));
+        wrapper.append($("<div>").text(text).css({
+          "position": "relative",
+          "padding-left": "5px",
+          "padding-right": "5px"
+        }));
+        return elem.css({
+          "padding": 0,
+          "padding-top": "5px",
+          "text-align": "center"
+        }).html(wrapper);
+      });
+    };
+    for (i = _i = 0; 0 <= numRows ? _i < numRows : _i > numRows; i = 0 <= numRows ? ++_i : --_i) {
+      barcharter(".pvtVal.row" + i);
+    }
+    barcharter(".pvtTotal.colTotal");
+    return this;
   };
 
 }).call(this);
@@ -1249,8 +1416,10 @@
   pvt = window.PivotTable;
 
   pvt.plugins['fixedTableHeader'] = function(table, options) {
-    console.log(table);
-    return table.fixedTableHeaderPro(options);
+    var _ref;
+    if (((_ref = table[0]) != null ? _ref.tagName : void 0) === 'TABLE') {
+      return table.fixedTableHeaderPro(options);
+    }
   };
 
 }).call(this);
@@ -1328,7 +1497,6 @@
         var wrapper;
         wrapper = this.parents('.fthp-wrapper-main');
         if (wrapper.size() > 0) {
-          console.log(wrapper);
           wrapper.parent().append(this);
           return wrapper.remove();
         }
@@ -1496,7 +1664,16 @@
     "aggregator.average": "average",
     "aggregator.sumOverSum": "sumOverSum",
     "aggregator.ub80": "ub80",
-    "aggregator.lb80": "lb80"
+    "aggregator.lb80": "lb80",
+    "charts title": function(args) {
+      if (args[0] == null) {
+        return args[1];
+      } else if (args[1] == null) {
+        return args[0];
+      } else {
+        return "" + args[0] + " by " + args[1];
+      }
+    }
   };
 
   i18n["zh"] = i18n["zh-CN"] = {
@@ -1523,13 +1700,25 @@
     "aggregator.average": "平均值",
     "aggregator.sumOverSum": "累加并求比例",
     "aggregator.ub80": "累加并求比例2",
-    "aggregator.lb80": "累加并求比例3"
+    "aggregator.lb80": "累加并求比例3",
+    "charts title": function(args) {
+      if (args[0] == null) {
+        return args[1];
+      } else if (args[1] == null) {
+        return args[0];
+      } else {
+        return "" + args[1] + " 之 " + args[0];
+      }
+    },
+    "Line chart": "折线图",
+    "Bar chart": "柱状图",
+    "Area chart": "面积图"
   };
 
 }).call(this);
 
 ;(function() {
-  var $, pvt, renderers;
+  var $, makeFlotChart, pvt, renderers, t;
 
   $ = jQuery;
 
@@ -1537,160 +1726,106 @@
 
   renderers = pvt.renderers;
 
+  t = pvt.i18n.t;
+
   $.extend(renderers, {
-    "Row Barchart": function(pvtData) {
-      return pvt.buildPivotTable(pvtData).barchart();
+    "Line chart": function(pvtData, parent) {
+      return makeFlotChart(pvtData, parent, 'line');
     },
-    "Heatmap": function(pvtData) {
-      return pvt.buildPivotTable(pvtData).heatmap();
+    "Bar chart": function(pvtData, parent) {
+      return makeFlotChart(pvtData, parent, 'column');
     },
-    "Row Heatmap": function(pvtData) {
-      return pvt.buildPivotTable(pvtData).heatmap("rowheatmap");
-    },
-    "Col Heatmap": function(pvtData) {
-      return pvt.buildPivotTable(pvtData).heatmap("colheatmap");
+    "Area chart": function(pvtData, parent) {
+      return makeFlotChart(pvtData, parent, 'area');
     }
   });
 
-  /*
-  Heatmap post-processing
-  */
-
-
-  $.fn.heatmap = function(scope) {
-    var colorGen, heatmapper, i, j, numCols, numRows, _i, _j, _ref,
-      _this = this;
-    if (scope == null) {
-      scope = "heatmap";
+  makeFlotChart = function(pvtData, parent, type, option) {
+    var agg, colKey, colKeys, data, dataArray, dataObj, defaultOpt, groupByTitle, h, hAxisTitle, headers, height, rowKey, rowKeys, title, width, wrapper, _i, _j, _len, _len1;
+    width = $(window).width() / 1.2;
+    height = $(window).height() / 1.4;
+    wrapper = $("<div class='pvt-flot-chart'>").width(width).height(height);
+    parent.empty().append(wrapper);
+    rowKeys = pivotData.getRowKeys();
+    if (rowKeys.length === 0) {
+      rowKeys.push([]);
     }
-    _ref = this.data("dimensions"), numRows = _ref[0], numCols = _ref[1];
-    colorGen = function(color, min, max) {
-      var hexGen;
-      hexGen = (function() {
-        switch (color) {
-          case "red":
-            return function(hex) {
-              return "ff" + hex + hex;
-            };
-          case "green":
-            return function(hex) {
-              return "" + hex + "ff" + hex;
-            };
-          case "blue":
-            return function(hex) {
-              return "" + hex + hex + "ff";
-            };
-        }
-      })();
-      return function(x) {
-        var hex, intensity;
-        intensity = 255 - Math.round(255 * (x - min) / (max - min));
-        hex = intensity.toString(16).split(".")[0];
-        if (hex.length === 1) {
-          hex = 0 + hex;
-        }
-        return hexGen(hex);
-      };
-    };
-    heatmapper = function(scope, color) {
-      var colorFor, forEachCell, values;
-      forEachCell = function(f) {
-        return _this.find(scope).each(function() {
-          var x;
-          x = $(this).data("value");
-          if ((x != null) && isFinite(x)) {
-            return f(x, $(this));
-          }
-        });
-      };
-      values = [];
-      forEachCell(function(x) {
-        return values.push(x);
-      });
-      colorFor = colorGen(color, Math.min.apply(Math, values), Math.max.apply(Math, values));
-      return forEachCell(function(x, elem) {
-        return elem.css("background-color", "#" + colorFor(x));
-      });
-    };
-    switch (scope) {
-      case "heatmap":
-        heatmapper(".pvtVal", "red");
-        break;
-      case "rowheatmap":
-        for (i = _i = 0; 0 <= numRows ? _i < numRows : _i > numRows; i = 0 <= numRows ? ++_i : --_i) {
-          heatmapper(".pvtVal.row" + i, "red");
-        }
-        break;
-      case "colheatmap":
-        for (j = _j = 0; 0 <= numCols ? _j < numCols : _j > numCols; j = 0 <= numCols ? ++_j : --_j) {
-          heatmapper(".pvtVal.col" + j, "red");
-        }
+    colKeys = pivotData.getColKeys();
+    if (colKeys.length === 0) {
+      colKeys.push([]);
     }
-    heatmapper(".pvtTotal.rowTotal", "red");
-    heatmapper(".pvtTotal.colTotal", "red");
-    return this;
+    headers = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = rowKeys.length; _i < _len; _i++) {
+        h = rowKeys[_i];
+        _results.push(h.join("-"));
+      }
+      return _results;
+    })();
+    dataArray = [];
+    for (_i = 0, _len = colKeys.length; _i < _len; _i++) {
+      colKey = colKeys[_i];
+      dataObj = {};
+      dataObj.name = colKey.join("-");
+      data = [];
+      for (_j = 0, _len1 = rowKeys.length; _j < _len1; _j++) {
+        rowKey = rowKeys[_j];
+        agg = pivotData.getAggregator(rowKey, colKey);
+        if (agg.value() != null) {
+          data.push(agg.value());
+        } else {
+          data.push(null);
+        }
+      }
+      dataObj.data = data;
+      dataArray.push(dataObj);
+    }
+    hAxisTitle = pivotData.colVars.join("-");
+    groupByTitle = pivotData.rowVars.join("-");
+    title = t("charts title", hAxisTitle, groupByTitle);
+    defaultOpt = {
+      chart: {
+        type: type
+      },
+      title: {
+        text: title
+      },
+      xAxis: {
+        categories: headers,
+        title: {
+          text: groupByTitle
+        }
+      },
+      yAxis: {
+        title: {
+          text: null
+        }
+      },
+      legend: {
+        align: 'right',
+        layout: 'vertical',
+        verticalAlign: 'top',
+        y: 50,
+        padding: 10,
+        itemStyle: {
+          lineHeight: '20px',
+          padding: '5px'
+        }
+      },
+      credits: {
+        enabled: false
+      },
+      series: dataArray
+    };
+    $.extend(defaultOpt, option);
+    wrapper.highcharts(defaultOpt);
+    return wrapper;
   };
 
-  /*
-  Barchart post-processing
-  */
+}).call(this);
 
+;(function() {
 
-  $.fn.barchart = function() {
-    var barcharter, i, numCols, numRows, _i, _ref,
-      _this = this;
-    _ref = this.data("dimensions"), numRows = _ref[0], numCols = _ref[1];
-    barcharter = function(scope) {
-      var forEachCell, max, scaler, values;
-      forEachCell = function(f) {
-        return _this.find(scope).each(function() {
-          var x;
-          x = $(this).data("value");
-          if ((x != null) && isFinite(x)) {
-            return f(x, $(this));
-          }
-        });
-      };
-      values = [];
-      forEachCell(function(x) {
-        return values.push(x);
-      });
-      max = Math.max.apply(Math, values);
-      scaler = function(x) {
-        return 100 * x / (1.4 * max);
-      };
-      return forEachCell(function(x, elem) {
-        var text, wrapper;
-        text = elem.text();
-        wrapper = $("<div>").css({
-          "position": "relative",
-          "height": "55px"
-        });
-        wrapper.append($("<div>").css({
-          "position": "absolute",
-          "bottom": 0,
-          "left": 0,
-          "right": 0,
-          "height": scaler(x) + "%",
-          "background-color": "gray"
-        }));
-        wrapper.append($("<div>").text(text).css({
-          "position": "relative",
-          "padding-left": "5px",
-          "padding-right": "5px"
-        }));
-        return elem.css({
-          "padding": 0,
-          "padding-top": "5px",
-          "text-align": "center"
-        }).html(wrapper);
-      });
-    };
-    for (i = _i = 0; 0 <= numRows ? _i < numRows : _i > numRows; i = 0 <= numRows ? ++_i : --_i) {
-      barcharter(".pvtVal.row" + i);
-    }
-    barcharter(".pvtTotal.colTotal");
-    return this;
-  };
 
 }).call(this);

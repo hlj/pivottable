@@ -71,7 +71,6 @@
         var wrapper;
         wrapper = this.parents('.fthp-wrapper-main');
         if (wrapper.size() > 0) {
-          console.log(wrapper);
           wrapper.parent().append(this);
           return wrapper.remove();
         }

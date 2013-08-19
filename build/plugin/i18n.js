@@ -19,7 +19,16 @@
     "aggregator.average": "average",
     "aggregator.sumOverSum": "sumOverSum",
     "aggregator.ub80": "ub80",
-    "aggregator.lb80": "lb80"
+    "aggregator.lb80": "lb80",
+    "charts title": function(args) {
+      if (args[0] == null) {
+        return args[1];
+      } else if (args[1] == null) {
+        return args[0];
+      } else {
+        return "" + args[0] + " by " + args[1];
+      }
+    }
   };
 
   i18n["zh"] = i18n["zh-CN"] = {
@@ -46,7 +55,19 @@
     "aggregator.average": "平均值",
     "aggregator.sumOverSum": "累加并求比例",
     "aggregator.ub80": "累加并求比例2",
-    "aggregator.lb80": "累加并求比例3"
+    "aggregator.lb80": "累加并求比例3",
+    "charts title": function(args) {
+      if (args[0] == null) {
+        return args[1];
+      } else if (args[1] == null) {
+        return args[0];
+      } else {
+        return "" + args[1] + " 之 " + args[0];
+      }
+    },
+    "Line chart": "折线图",
+    "Bar chart": "柱状图",
+    "Area chart": "面积图"
   };
 
 }).call(this);

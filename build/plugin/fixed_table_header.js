@@ -6,8 +6,10 @@
   pvt = window.PivotTable;
 
   pvt.plugins['fixedTableHeader'] = function(table, options) {
-    console.log(table);
-    return table.fixedTableHeaderPro(options);
+    var _ref;
+    if (((_ref = table[0]) != null ? _ref.tagName : void 0) === 'TABLE') {
+      return table.fixedTableHeaderPro(options);
+    }
   };
 
 }).call(this);

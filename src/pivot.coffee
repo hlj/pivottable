@@ -421,7 +421,7 @@ $.fn.pivot = (input, opts) ->
                                 opts.aggregator, opts.filter, 
                                 opts.derivedAttributes)
                                 
-    @html pvtTable = opts.renderer pivotData
+    @html pvtTable = opts.renderer pivotData, this
     $.pivotUtilities.plugins[k](pvtTable, v) for k, v of opts.plugins
 
 ###

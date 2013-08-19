@@ -713,7 +713,7 @@
     opts = $.extend(defaults, opts);
     $.pivotUtilities.decorators.style = opts.decoratorStyle;
     pivotData = buildPivotData(input, opts.cols, opts.rows, opts.aggregator, opts.filter, opts.derivedAttributes);
-    this.html(pvtTable = opts.renderer(pivotData));
+    this.html(pvtTable = opts.renderer(pivotData, this));
     _ref = opts.plugins;
     _results = [];
     for (k in _ref) {
