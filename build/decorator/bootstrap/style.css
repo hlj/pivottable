@@ -5,7 +5,6 @@ table.pvt-table-bt .pvt-total-label-bt{text-align:right}
 table.pvt-table-bt tr td{color:#3D3D3D;padding:5px;font-size:10pt;background-color:#FFF;border:1px solid #CDCDCD;vertical-align:top;text-align:right}
 .pvt-ui-table-bt .navbar{margin-bottom:0px}
 .pvt-total-bt,.pvt-grand-total-bt{font-weight:bold}
-#sunused.pvt-axis-container-bt{background:transparent;border:0px;min-height:0px}
 .pvt-axis-container-bt{border:1px solid #ccc;background:whitesmoke;padding:5px;min-width:20px;min-height:20px}
 .pvt-axis-container-bt li{margin:3px;padding-left:10px;list-style-type:none;cursor:move}.pvt-axis-container-bt li input[type=checkbox]{margin-top:0px;margin-right:5px;line-height:20px}
 .dropdown-menu .btn{margin-right:10px}

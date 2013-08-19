@@ -5,12 +5,12 @@ renderers = pvt.renderers
 t = pvt.i18n.t
 
 $.extend renderers,
-    "Line chart": (pvtData, parent) -> makeFlotChart(pvtData, parent, 'line')
-    "Bar chart":   (pvtData, parent) -> makeFlotChart(pvtData, parent, 'column')
-    "Area chart":  (pvtData, parent) -> makeFlotChart(pvtData, parent, 'area')
+    "Line chart": (pvtData, parent) -> makeChart(pvtData, parent, 'line')
+    "Bar chart":   (pvtData, parent) -> makeChart(pvtData, parent, 'column')
+    "Area chart":  (pvtData, parent) -> makeChart(pvtData, parent, 'area')
     
 
-makeFlotChart = (pvtData, parent, type, option) ->
+makeChart = (pvtData, parent, type, option) ->
     width = $(window).width() / 1.2
     height =  $(window).height() / 1.4
     wrapper = $("<div class='pvt-flot-chart'>").width(width).height(height)

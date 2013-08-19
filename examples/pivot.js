@@ -1718,7 +1718,7 @@
 }).call(this);
 
 ;(function() {
-  var $, makeFlotChart, pvt, renderers, t;
+  var $, makeChart, pvt, renderers, t;
 
   $ = jQuery;
 
@@ -1730,17 +1730,17 @@
 
   $.extend(renderers, {
     "Line chart": function(pvtData, parent) {
-      return makeFlotChart(pvtData, parent, 'line');
+      return makeChart(pvtData, parent, 'line');
     },
     "Bar chart": function(pvtData, parent) {
-      return makeFlotChart(pvtData, parent, 'column');
+      return makeChart(pvtData, parent, 'column');
     },
     "Area chart": function(pvtData, parent) {
-      return makeFlotChart(pvtData, parent, 'area');
+      return makeChart(pvtData, parent, 'area');
     }
   });
 
-  makeFlotChart = function(pvtData, parent, type, option) {
+  makeChart = function(pvtData, parent, type, option) {
     var agg, colKey, colKeys, data, dataArray, dataObj, defaultOpt, groupByTitle, h, hAxisTitle, headers, height, rowKey, rowKeys, title, width, wrapper, _i, _j, _len, _len1;
     width = $(window).width() / 1.2;
     height = $(window).height() / 1.4;
