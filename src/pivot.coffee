@@ -448,7 +448,7 @@ $.fn.pivotUI = (input, opts) ->
         vals = []
         $("#rows .data-label").each -> subopts.rows.push $(this).data('name')
         $("#cols .data-label").each -> subopts.cols.push $(this).data('name')
-        $("#vals .data-lable").each -> vals.push $(this).data('name')
+        $("#vals .data-label").each -> vals.push $(this).data('name')
 
         subopts.aggregator = opts.aggregators[aggregator.val()](vals)
 
@@ -517,6 +517,7 @@ $.fn.pivotUI = (input, opts) ->
     uiTable.append tr2
 
     #render the UI in its default state
+    decorators.decorate(uiTable, 'pivotUITable')
     @html uiTable
     
     #set up the UI initial state as requested by moving elements around

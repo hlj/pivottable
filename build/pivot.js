@@ -759,7 +759,7 @@
       $("#cols .data-label").each(function() {
         return subopts.cols.push($(this).data('name'));
       });
-      $("#vals .data-lable").each(function() {
+      $("#vals .data-label").each(function() {
         return vals.push($(this).data('name'));
       });
       subopts.aggregator = opts.aggregators[aggregator.val()](vals);
@@ -851,6 +851,7 @@
     pivotTable = $("<td valign='top'>");
     tr2.append(pivotTable);
     uiTable.append(tr2);
+    decorators.decorate(uiTable, 'pivotUITable');
     this.html(uiTable);
     decorators.decorate(opts, 'initialUI');
     refresh();

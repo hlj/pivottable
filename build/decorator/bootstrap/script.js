@@ -17,15 +17,14 @@
       return this;
     },
     pivotUITable: function() {
-      this.addClass('table pvt-ui-table-bt');
+      this.addClass('pvt-ui-table-bt');
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
-      var btn, container, controls, nav, x, _i, _len;
-      controls = $("<td colspan='2' align='center'>");
-      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Effects:")) + "</a>\n<ul class=\"nav\">\n<li>\n    <div class='btn-group' data-toggle='buttons-radio'></div>\n</li>\n</ul>\n</div>\n</div>");
-      controls.append(nav);
-      container = nav.find(".btn-group");
+      var btn, container, controls, x, _i, _len;
+      controls = $("<td colspan='2' class='pvt-axis-container-bt' align='left'>");
+      container = $("<div class='btn-group' data-toggle='buttons-radio'>");
+      controls.append(container);
       for (_i = 0, _len = rendererNames.length; _i < _len; _i++) {
         x = rendererNames[_i];
         btn = $("<button  type='button' class='btn' id='renderers_" + (x.replace(/\s/g, "")) + "'>" + (t(x)) + "</button>").data('val', x);
@@ -39,11 +38,8 @@
       return container;
     },
     createColList: function(tblCols, hiddenAxes, axisValues, change_callback) {
-      var c, colList, container, nav, _i, _len;
-      colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>");
-      nav = $("<div class=\"navbar\">\n<div class=\"navbar-inner\">\n<a class=\"brand\" href=\"#\">" + (t("Fields:")) + "</a>\n</div>\n</div>");
-      colList.append(nav);
-      container = nav.find(".navbar-inner");
+      var c, colList, container, _i, _len;
+      container = colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>");
       for (_i = 0, _len = tblCols.length; _i < _len; _i++) {
         c = tblCols[_i];
         if (__indexOf.call(hiddenAxes, c) < 0) {
@@ -64,17 +60,19 @@
             btn = $("    \n <div class='btn-group data-label' id='axis_" + (c.replace(/\s/g, "")) + "'>\n     <span class='btn handle'>" + c + "</span>\n     <button class=\"btn dropdown-toggle\" data-toggle=\"dropdown\">\n         <span class=\"icon-filter\"></span>\n     </button>\n </div>\n").data('name', c);
             valueList = $("<ul class='dropdown-menu'>");
             valueList.append($("<li>").text(t("values for axis", numKeys, c)));
+            valueList.append("<li class='divider'></li>");
             if (numKeys > 20) {
               valueList.append($("<li>").text(t("(too many to list)")));
             } else {
               li = $('<li>');
-              li.append($("<button class='btn btn-min'>").text(t("Select All")).bind("click", function() {
+              li.append($("<button class='btn btn-mini'>").text(t("Select All")).bind("click", function() {
                 return valueList.find("input").attr("checked", true);
               }));
-              li.append($("<button class='btn btn-min'>").text(t("Select None")).bind("click", function() {
+              li.append($("<button class='btn btn-mini'>").text(t("Select None")).bind("click", function() {
                 return valueList.find("input").attr("checked", false);
               }));
               valueList.append(li);
+              valueList.append("<li class='divider'></li>");
               _ref = keys.sort();
               for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                 k = _ref[_j];
@@ -152,8 +150,8 @@
         uiTable.find(k).addClass(v);
       }
       updateLabel = function() {
-        $('#rows, #cols').find('.btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
-        return $('#unused').find('.btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
+        $('#rows, #cols, #vals').find('.btn-group > .btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
+        return $('#unused').find('.btn-group > .btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
       };
       $(".pvtAxisContainer").sortable().on('sortstop', updateLabel);
       return updateLabel();
