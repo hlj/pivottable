@@ -11,7 +11,7 @@ table.pvt-table-bt tr td{color:#3D3D3D;padding:5px;font-size:10pt;background-col
 .pvt-axis-container-bt li{margin:3px;padding-left:10px;list-style-type:none;cursor:move}.pvt-axis-container-bt li input[type=checkbox]{margin-top:0px;margin-right:5px;line-height:20px}
 .dropdown-menu .btn{margin-right:10px}
 #rows .btn-group{display:block;margin-left:10px;margin-top:10px}
-#vals select{width:120px}
+.pvt-ui-table-bt select{width:120px;height:26px;margin-bottom:0px}
 table.pvt-table-bt tr td.pvtVal-em{font-weight:bold}
 table.pvt-table-bt tr th.pvtVal-cross{background:skyblue}
 

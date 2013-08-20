@@ -1092,25 +1092,24 @@
       return this;
     },
     createRendererSelector: function(rendererNames, change_callback) {
-      var btn, container, controls, x, _i, _len;
-      controls = $("<td colspan='2' class='pvt-axis-container-bt' align='left'>");
-      container = $("<div class='btn-group' data-toggle='buttons-radio'>");
+      var container, controls, x, _i, _len;
+      controls = $("<td colspan='1' class='pvt-axis-container-bt' align='center'>");
+      container = $("<select id='renderer' class='renderer-sel-bt'>");
       controls.append(container);
       for (_i = 0, _len = rendererNames.length; _i < _len; _i++) {
         x = rendererNames[_i];
-        btn = $("<button  type='button' class='btn' id='renderers_" + (x.replace(/\s/g, "")) + "'>" + (t(x)) + "</button>").data('val', x);
-        container.append(btn);
+        container.append($("<option value='" + x + "'>" + (t(x)) + "</option>"));
       }
       this.append($("<tr>").append(controls));
-      $('button', container).bind("click", function() {
-        container.data('selected', $(this).data('val'));
+      container.on('change', function() {
+        container.data('selected', $(this).val());
         return change_callback();
       });
       return container;
     },
     createColList: function(tblCols, hiddenAxes, axisValues, change_callback) {
       var c, colList, container, _i, _len;
-      container = colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>");
+      container = colList = $("<td colspan='1' id='unused' class='pvtHorizList pvtAxisContainer'>");
       for (_i = 0, _len = tblCols.length; _i < _len; _i++) {
         c = tblCols[_i];
         if (__indexOf.call(hiddenAxes, c) < 0) {
@@ -1167,7 +1166,7 @@
           })(c);
         }
       }
-      this.append($("<tr>").append(colList));
+      this.find("tr:first").append(colList);
       return container;
     },
     createAggregatorMenu: function(aggregators, change_callback) {
@@ -1201,7 +1200,7 @@
         $("#aggregator").val(opts.aggregatorName);
       }
       if (this.rendererName != null) {
-        return $("#renderers_" + (this.rendererName.replace(/\s/g, ""))).trigger('click');
+        return $("#renderer").val(this.rendererName).trigger('change');
       }
     },
     afterCreated: function() {
@@ -1221,8 +1220,8 @@
         uiTable.find(k).addClass(v);
       }
       updateLabel = function() {
-        $('#rows, #cols, #vals').find('.btn-group > .btn').addClass('btn-success').find('.icon-filter').addClass('icon-white');
-        return $('#unused').find('.btn-group > .btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white');
+        $('#rows, #cols, #vals').find('.btn-group > .btn').addClass('btn-info').find('.icon-filter').addClass('icon-white');
+        return $('#unused').find('.btn-group > .btn').removeClass('btn-info').find('.icon-filter').removeClass('icon-white');
       };
       $(".pvtAxisContainer").sortable().on('sortstop', updateLabel);
       return updateLabel();
@@ -1678,9 +1677,9 @@
 
   i18n["zh"] = i18n["zh-CN"] = {
     "Row Barchart": "行内柱状图",
-    "Heatmap": "热点图",
-    "Row Heatmap": "行热点图",
-    "Col Heatmap": "列热点图",
+    "Heatmap": "热点表",
+    "Row Heatmap": "行热点表",
+    "Col Heatmap": "列热点表",
     "null": "空值",
     "Totals": "合计",
     "None": "无",
@@ -1826,7 +1825,6 @@
           dataView: {
             readOnly: true
           },
-          restore: true,
           saveAsImage: true
         }
       },

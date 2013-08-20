@@ -13,49 +13,23 @@ decorators['bootstrap'] =
         return this
         
     createRendererSelector: (rendererNames, change_callback) ->
-        controls = $("<td colspan='2' class='pvt-axis-container-bt' align='left'>")
-        # nav = $(
-        #     """
-        #     <div class="navbar">
-        #     <div class="navbar-inner">
-        #     <a class="brand" href="#">#{t "Effects:"}</a>
-        #     <ul class="nav">
-        #     <li>
-        #         <div class='btn-group' data-toggle='buttons-radio'></div>
-        #     </li>
-        #     </ul>
-        #     </div>
-        #     </div>
-        #     """)
-        container = $ "<div class='btn-group' data-toggle='buttons-radio'>"
+        controls = $("<td colspan='1' class='pvt-axis-container-bt' align='center'>")
+        container = $ "<select id='renderer' class='renderer-sel-bt'>"
         
 
         controls.append container 
-        # container = nav.find(".btn-group")
                 
         for x in rendererNames
-            btn = $("<button  type='button' class='btn' id='renderers_#{x.replace(/\s/g, "")}'>#{t x}</button>").data('val', x)
-            container.append btn                          
+            container.append $ "<option value='#{x}'>#{t x}</option>"                          
         this.append $("<tr>").append controls
         
-        $('button', container).bind "click", ->
-             container.data('selected', $(this).data('val'))
+        container.on 'change', ->
+             container.data('selected', $(this).val())
              change_callback()
         return container
     
     createColList: (tblCols, hiddenAxes, axisValues, change_callback) ->
-        container = colList = $("<td colspan='2' id='unused' class='pvtHorizList pvtAxisContainer'>")
-        # nav = $(
-        #     """
-        #     <div class="navbar">
-        #     <div class="navbar-inner">
-        #     <a class="brand" href="#">#{t "Fields:"}</a>
-        #     </div>
-        #     </div>
-        #     """)
-        # colList.append nav
-        # container = nav.find(".navbar-inner")
-
+        container = colList = $("<td colspan='1' id='unused' class='pvtHorizList pvtAxisContainer'>")
         for c in tblCols when c not in hiddenAxes
             do (c) ->
                 keys = (k for own k,v of axisValues[c])
@@ -101,7 +75,7 @@ decorators['bootstrap'] =
                 
                 container.append btn.append valueList
                       
-        this.append $("<tr>").append colList      
+        this.find("tr:first").append colList 
         return container
     
     createAggregatorMenu: (aggregators, change_callback) ->
@@ -123,7 +97,7 @@ decorators['bootstrap'] =
         if this.aggregatorName?
             $("#aggregator").val opts.aggregatorName
         if this.rendererName?
-            $("#renderers_#{this.rendererName.replace(/\s/g, "")}").trigger('click') 
+            $("#renderer").val(this.rendererName).trigger('change')
             
     afterCreated: ->
         pvtTable = $('.pvtTable')
@@ -139,8 +113,8 @@ decorators['bootstrap'] =
             uiTable.find(k).addClass(v)
             
         updateLabel = ->
-            $('#rows, #cols, #vals').find('.btn-group > .btn').addClass('btn-success').find('.icon-filter').addClass('icon-white')
-            $('#unused').find('.btn-group > .btn').removeClass('btn-success').find('.icon-filter').removeClass('icon-white')
+            $('#rows, #cols, #vals').find('.btn-group > .btn').addClass('btn-info').find('.icon-filter').addClass('icon-white')
+            $('#unused').find('.btn-group > .btn').removeClass('btn-info').find('.icon-filter').removeClass('icon-white')
         $(".pvtAxisContainer").sortable()
             .on 'sortstop', updateLabel
         updateLabel()

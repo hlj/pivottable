@@ -23,9 +23,9 @@ i18n["en"] =
     
 i18n["zh"] = i18n["zh-CN"] =
     "Row Barchart": "行内柱状图"
-    "Heatmap":      "热点图"
-    "Row Heatmap":  "行热点图"
-    "Col Heatmap":  "列热点图"
+    "Heatmap":      "热点表"
+    "Row Heatmap":  "行热点表"
+    "Col Heatmap":  "列热点表"
     "null":         "空值"
     "Totals":       "合计"
     "None":         "无"
