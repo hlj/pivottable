@@ -7,7 +7,7 @@
 
   pvt.plugins['fixedTableHeader'] = function(table, options) {
     var _ref;
-    if (((_ref = table[0]) != null ? _ref.tagName : void 0) === 'TABLE') {
+    if ((table != null) && ((_ref = table[0]) != null ? _ref.tagName : void 0) === 'TABLE') {
       return table.fixedTableHeaderPro(options);
     }
   };

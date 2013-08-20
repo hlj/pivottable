@@ -3,17 +3,11 @@ pvt = window.PivotTable
 
 renderers = pvt.renderers
 t = pvt.i18n.t
-
-$.extend renderers,
-    "Line chart": (pvtData, parent) -> makeChart(pvtData, parent, 'line')
-    "Bar chart":   (pvtData, parent) -> makeChart(pvtData, parent, 'column')
-    "Area chart":  (pvtData, parent) -> makeChart(pvtData, parent, 'area')
     
-
-makeChart = (pvtData, parent, type, option) ->
+makeDatas = (pvtData, parent) ->
     width = $(window).width() / 1.2
     height =  $(window).height() / 1.4
-    wrapper = $("<div class='pvt-flot-chart'>").width(width).height(height)
+    wrapper = $("<div class='pvt-table-chart'>").width(width).height(height)
     parent.empty().append(wrapper)
     
     rowKeys = pivotData.getRowKeys()
@@ -32,7 +26,7 @@ makeChart = (pvtData, parent, type, option) ->
             agg = pivotData.getAggregator(rowKey, colKey)
             if agg.value()?
                 data.push agg.value()
-            else data.push null
+            else data.push 0
         dataObj.data = data
         dataArray.push dataObj
     
@@ -41,15 +35,85 @@ makeChart = (pvtData, parent, type, option) ->
     groupByTitle = pivotData.rowVars.join("-")
     title = t "charts title", hAxisTitle, groupByTitle
     
+    return (
+        wrapper: wrapper
+        xCategories: headers
+        dataArray: dataArray
+        title: title
+        yTitle: hAxisTitle
+        xTitle: groupByTitle
+    )
+        
+
+makeEChart = (pvtData, parent, type, option) -> 
+    datas = makeDatas pvtData, parent
+    legends = []
+    for d in datas.dataArray
+        legends.push d.name
+        d.type = if type is 'area' then 'line' else type
+        d.itemStyle = 
+            normal: {}
+        if type is 'area'
+            d.itemStyle.normal.areaStyle = {type: 'default'}
+        else
+            d.itemStyle.normal.lineStyle = { width:2}
+        
+    defaultOpt =
+        animationDuration: 1500
+        title:
+            text: datas.title
+            x: 'center'
+        tooltip:
+            trigger: 'item'
+        legend:
+            data: legends
+            orient: 'vertical'
+            x: 'right'
+            y: 80
+        toolbox:
+            show : true
+            feature :
+                mark : true
+                dataView : 
+                    readOnly: true
+                restore : true
+                saveAsImage : true
+        calculable : true
+        xAxis :
+            name: '子'
+            type : 'category'
+            boundaryGap : type is 'bar'
+            data : datas.xCategories
+            axisLabel:
+                interval: 'auto'
+        yAxis :
+            type : 'value'
+            name:  datas.yTitle
+            splitArea : 
+                show : true
+        series : datas.dataArray
+        
+    $.extend defaultOpt, option
+    
+    require ['echarts/echarts'], (echarts) ->
+        pvtChart = echarts.init datas.wrapper[0]
+        pvtChart.setOption(defaultOpt)
+    
+    
+    return datas.wrapper
+    
+makeHighChart = (pvtData, parent, type, option) ->
+    type = 'column' if type is 'bar'
+    datas = makeDatas pvtData, parent
     defaultOpt = 
         chart:
             type:  type
         title:
-            text: title
+            text: datas.title
         xAxis:
-            categories: headers
+            categories: datas.xCategories
             title: 
-                text: groupByTitle
+                text: datas.xTitle
         yAxis:
             title:
                 text: null
@@ -65,52 +129,16 @@ makeChart = (pvtData, parent, type, option) ->
         credits:
             enabled: false
             
-        series: dataArray
+        series: datas.dataArray
     
     $.extend defaultOpt, option
-    wrapper.highcharts defaultOpt
+    datas.wrapper.highcharts defaultOpt
     
-    return wrapper
-    # 
-    # headers.unshift ""
-    # 
-    # numCharsInHAxis = 0
-    # dataArray = [headers]
-    # for colKey in colKeys
-    #     row = [colKey.join("-")]
-    #     numCharsInHAxis += row[0].length
-    #     for rowKey in rowKeys
-    #         agg = pivotData.getAggregator(rowKey, colKey)
-    #         if agg.value()?
-    #             row.push agg.value()
-    #         else row.push null
-    #     dataArray.push row
-    # 
-    # title = vAxisTitle = pivotData.aggregator().label
-    # hAxisTitle = pivotData.colVars.join("-")
-    # title += " vs #{hAxisTitle}" if hAxisTitle != ""
-    # groupByTitle = pivotData.rowVars.join("-")
-    # title += " by #{groupByTitle}" if groupByTitle != ""
-    # 
-    # JSON.stringify(dataArray)
-    # options = 
-    #     title: title
-    #     hAxis: {title: hAxisTitle, slantedText: numCharsInHAxis > 50}
-    #     vAxis: {title: vAxisTitle}
-    # 
-    # if dataArray[0].length == 2 and dataArray[0][1] ==  ""
-    #     options.legend = position: "none"
-    # 
-    # options[k] = v for k, v of extraOptions
-    # 
-    # dataTable = google.visualization.arrayToDataTable(dataArray)
-    # 
-    # result = $("<div style='width: 100%; height: 100%;'>")
-    # wrapper = new google.visualization.ChartWrapper {dataTable, chartType, options}
-    # wrapper.draw(result[0]) 
-    # result.bind "dblclick", -> 
-    #     editor = new google.visualization.ChartEditor()
-    #     google.visualization.events.addListener editor, 'ok', -> 
-    #         editor.getChartWrapper().draw(result[0])
-    #     editor.openDialog(wrapper)
-    # return result
+    return datas.wrapper
+    
+
+makeChart = if $.fn.highcharts? then makeHighChart else makeEChart
+$.extend renderers,
+    "Line chart": (pvtData, parent) -> makeChart(pvtData, parent, 'line')
+    "Bar chart":   (pvtData, parent) -> makeChart(pvtData, parent, 'bar')
+    "Area chart":  (pvtData, parent) -> makeChart(pvtData, parent, 'area')
