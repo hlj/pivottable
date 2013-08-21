@@ -2052,6 +2052,7 @@ base64.encode = function(s) {
           dataView: {
             readOnly: true
           },
+          restore: true,
           saveAsImage: true
         }
       },

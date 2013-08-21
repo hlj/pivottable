@@ -76,7 +76,7 @@ makeEChart = (pvtData, parent, type, option) ->
                 mark : true
                 dataView : 
                     readOnly: true
-                #restore : true
+                restore : true
                 saveAsImage : true
         calculable : true
         xAxis :

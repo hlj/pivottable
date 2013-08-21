@@ -107,6 +107,7 @@
           dataView: {
             readOnly: true
           },
+          restore: true,
           saveAsImage: true
         }
       },
