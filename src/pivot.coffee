@@ -524,7 +524,7 @@ $.fn.pivotUI = (input, opts) ->
     decorators.decorate(opts, 'initialUI')
     
     #the very first refresh will actually display the table
-    refresh()
+    #refresh()
 
     #finally we attach the event handlers
     $(".pvtAxisContainer")

@@ -34,7 +34,7 @@ task 'build:less', ->
 task 'bundle:js', ->
     invoke 'build:coffee'
     flour.minifiers.disable 'js'
-    file_order = ['build/pivot.js', 'build/decorator/default.js', 'build/plugin/renderers.js']
+    file_order = ['build/pivot.js', 'build/decorator/default.js', 'build/plugin/base64.js', 'build/plugin/renderers.js']
     flour.getFiles 'build/**/*.js', (files) ->
         files.splice(files.indexOf(file),1) for file in file_order
         bundle file_order.concat(files), 'dist/pivot.all.js', ->

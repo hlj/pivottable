@@ -43,6 +43,7 @@
     "Select All": "选择全部",
     "Effects:": "特效:",
     "Fields:": "字段:",
+    'Export': "导出",
     "(too many to list)": "(列表太长)",
     "values for axis": function(args) {
       return "共 " + args[0] + " 类 " + args[1];
