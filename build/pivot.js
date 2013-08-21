@@ -854,7 +854,6 @@
     decorators.decorate(uiTable, 'pivotUITable');
     this.html(uiTable);
     decorators.decorate(opts, 'initialUI');
-    refresh();
     $(".pvtAxisContainer").sortable({
       connectWith: ".pvtAxisContainer",
       items: '.data-label',

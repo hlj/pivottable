@@ -45,15 +45,24 @@
                     
                     $('#plugin-fthp').on('change',function(){
                         if ($(this).attr('checked')) {
-                            options.plugins = {
-                                'fixedTableHeader': {
+                            options.plugins.fixedTableHeader= {
                                     'fixedCol': true,
                                     'width': 800,
                                     'height': 500
                                 }
-                            }
                         } else {
-                            options.plugins={}
+                            delete options.plugins.fixedTableHeader
+                        }
+                        draw();
+                    });
+                    
+                    
+                    $('#plugin-export').on('change',function(){
+                        if ($(this).attr('checked')) {
+                            options.plugins.exportToExcel= {          
+                                }
+                        } else {
+                            delete options.plugins.exportToExcel
                         }
                         draw();
                     });
@@ -70,7 +79,9 @@
                 <option>jquery-ui</option>
             </select>
             <input type='checkbox' id='plugin-fthp' style='margin-left:10px;line-height:30px;height:30px;vertical-align:top'>
-            <label for='plugin-fthp'  style='display:inline;line-height:30px'>Fixed table Header</label>     
+            <label for='plugin-fthp'  style='display:inline;line-height:30px'>Fixed table Header</label>    
+            <input type='checkbox' id='plugin-export' style='margin-left:10px;line-height:30px;height:30px;vertical-align:top'>
+            <label for='plugin-export'  style='display:inline;line-height:30px'>Export to Excel</label>     
         </div>
         <div id="output" style="margin: 30px;"></div>
         <script type="text/javascript" charset="utf-8">
