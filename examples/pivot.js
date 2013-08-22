@@ -1938,7 +1938,8 @@ base64.encode = function(s) {
     },
     "Line chart": "折线图",
     "Bar chart": "柱状图",
-    "Area chart": "面积图"
+    "Area chart": "面积图",
+    "Can't show the chart, please include the ECharts or HighCharts first!": "无法显示此图表，请先引入ECharts或HighCharts组件"
   };
 
 }).call(this);
@@ -2009,7 +2010,7 @@ base64.encode = function(s) {
   };
 
   makeEChart = function(pvtData, parent, type, option) {
-    var d, datas, defaultOpt, legends, _i, _len, _ref;
+    var d, datas, defaultOpt, legends, pvtChart, _i, _len, _ref;
     datas = makeDatas(pvtData, parent);
     legends = [];
     _ref = datas.dataArray;
@@ -2076,11 +2077,8 @@ base64.encode = function(s) {
       series: datas.dataArray
     };
     $.extend(defaultOpt, option);
-    require(['echarts/echarts'], function(echarts) {
-      var pvtChart;
-      pvtChart = echarts.init(datas.wrapper[0]);
-      return pvtChart.setOption(defaultOpt);
-    });
+    pvtChart = window.echarts.init(datas.wrapper[0]);
+    pvtChart.setOption(defaultOpt);
     return datas.wrapper;
   };
 
@@ -2129,7 +2127,20 @@ base64.encode = function(s) {
     return datas.wrapper;
   };
 
-  makeChart = $.fn.highcharts != null ? makeHighChart : makeEChart;
+  makeChart = function() {
+    var fn;
+    if ($.fn.highcharts != null) {
+      fn = makeHighChart;
+    }
+    if (window.echarts != null) {
+      fn = makeEChart;
+    }
+    if (fn != null) {
+      return fn.apply(this, arguments);
+    } else {
+      return alert(t("Can't show the chart, please include the ECharts or HighCharts first!"));
+    }
+  };
 
   $.extend(renderers, {
     "Line chart": function(pvtData, parent) {

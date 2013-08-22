@@ -55,3 +55,4 @@ i18n["zh"] = i18n["zh-CN"] =
     "Line chart": "折线图"
     "Bar chart":  "柱状图"
     "Area chart": "面积图"
+    "Can't show the chart, please include the ECharts or HighCharts first!": "无法显示此图表，请先引入ECharts或HighCharts组件"

@@ -64,7 +64,7 @@
   };
 
   makeEChart = function(pvtData, parent, type, option) {
-    var d, datas, defaultOpt, legends, _i, _len, _ref;
+    var d, datas, defaultOpt, legends, pvtChart, _i, _len, _ref;
     datas = makeDatas(pvtData, parent);
     legends = [];
     _ref = datas.dataArray;
@@ -131,11 +131,8 @@
       series: datas.dataArray
     };
     $.extend(defaultOpt, option);
-    require(['echarts/echarts'], function(echarts) {
-      var pvtChart;
-      pvtChart = echarts.init(datas.wrapper[0]);
-      return pvtChart.setOption(defaultOpt);
-    });
+    pvtChart = window.echarts.init(datas.wrapper[0]);
+    pvtChart.setOption(defaultOpt);
     return datas.wrapper;
   };
 
@@ -184,7 +181,20 @@
     return datas.wrapper;
   };
 
-  makeChart = $.fn.highcharts != null ? makeHighChart : makeEChart;
+  makeChart = function() {
+    var fn;
+    if ($.fn.highcharts != null) {
+      fn = makeHighChart;
+    }
+    if (window.echarts != null) {
+      fn = makeEChart;
+    }
+    if (fn != null) {
+      return fn.apply(this, arguments);
+    } else {
+      return alert(t("Can't show the chart, please include the ECharts or HighCharts first!"));
+    }
+  };
 
   $.extend(renderers, {
     "Line chart": function(pvtData, parent) {

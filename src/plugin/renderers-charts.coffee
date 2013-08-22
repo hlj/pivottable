@@ -95,9 +95,8 @@ makeEChart = (pvtData, parent, type, option) ->
         
     $.extend defaultOpt, option
     
-    require ['echarts/echarts'], (echarts) ->
-        pvtChart = echarts.init datas.wrapper[0]
-        pvtChart.setOption(defaultOpt)
+    pvtChart = window.echarts.init datas.wrapper[0]
+    pvtChart.setOption(defaultOpt)
     
     
     return datas.wrapper
@@ -136,8 +135,14 @@ makeHighChart = (pvtData, parent, type, option) ->
     
     return datas.wrapper
     
-
-makeChart = if $.fn.highcharts? then makeHighChart else makeEChart
+makeChart = ->
+    fn = makeHighChart if $.fn.highcharts?
+    fn = makeEChart if window.echarts?
+    if fn?
+        fn.apply(this, arguments)
+    else
+        alert t "Can't show the chart, please include the ECharts or HighCharts first!"
+    
 $.extend renderers,
     "Line chart": (pvtData, parent) -> makeChart(pvtData, parent, 'line')
     "Bar chart":   (pvtData, parent) -> makeChart(pvtData, parent, 'bar')
